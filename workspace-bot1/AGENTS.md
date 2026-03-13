@@ -44,13 +44,17 @@ Don't ask permission. Just do it.
 1. 完整读取 `skills/fupan/SKILL-xiaohongshu.md`
 2. 完整读取 `memory/xiaohongshu/Bool 资本不眠 - 发帖风格分析.md`
 3. 读取 Step 1 产出的两个报告文件
-4. 按 `skills/fupan/SKILL-xiaohongshu.md` 中「核心工作流」的步骤 1 → 6 生成帖子
-5. 展示给用户确认
+4. **调用 `list_notes` 获取最近一篇已发帖子，读取其内容，对照风格写帖子**（保持语气、结构、互动钩子一致）
+5. 按 `skills/fupan/SKILL-xiaohongshu.md` 中「核心工作流」的步骤 1 → 6 生成帖子
+6. 展示给用户确认
 
-### Step 3：发布
+### Step 3：投稿到发布队列
 
-1. 用户确认帖子内容后，完整读取 `skills/xiaohongshu/SKILL.md`
-2. 按其中的发帖流程发布到小红书
+1. 用户确认帖子内容后，读取 `skills/submit-to-publisher/SKILL.md`
+2. 按其中的投稿流程，将帖子写入发布队列，触发印务局发布
+3. 告知用户「帖子已提交，等待印务局发布」
+
+⚠️ **不再直接调用 publish 工具。小红书 MCP 仅用于浏览、搜索、评论等非发布操作。**
 
 ⚠️ **每个 Step 开头必须先读取对应的文件，不要凭记忆执行。每次复盘都必须重新读取所有文件。**
 

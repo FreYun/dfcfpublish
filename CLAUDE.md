@@ -135,16 +135,15 @@ tail -f /tmp/xiaohongshu-mcp.log
 ├── workspace/                    # 通用模板（所有 bot 的基准）
 │   ├── skills/                   # 通用 skill 目录
 │   │   ├── xiaohongshu-mcp/      # 小红书 MCP（所有 bot 共用）
-│   │   ├── chaojimali-style/     # 超级马力风格（所有 bot 共用）
 │   │   ├── deepreasearch/        # 深度研究
 │   │   ├── web-fetch-enhanced/   # 增强网页抓取
 │   │   └── ...
 │   └── TOOLS_COMMON.md           # 全体 bot 工具规范（bot 的 TOOLS.md 引用此文件）
 │
 ├── workspace-bot1/               # bot1 专属 workspace
-│   ├── skills/                   # bot1 的 skill（通用 + 独有）
-│   │   ├── xiaohongshu-mcp/      # ← 通用 skill 的副本
-│   │   ├── chaojimali-style/     # ← 通用 skill 的副本
+│   ├── skills/                   # bot1 的 skill（通用 symlink + 独有）
+│   │   ├── xiaohongshu-mcp/      # → ../../workspace/skills/xiaohongshu-mcp（symlink）
+│   │   ├── xhs-operate/          # → ../../workspace/skills/xhs-operate（symlink）
 │   │   └── fupan/                # ← bot1 独有 skill
 │   ├── IDENTITY.md               # bot1 人设
 │   ├── TOOLS.md                  # bot1 工具配置（引用 TOOLS_COMMON.md）
@@ -153,8 +152,7 @@ tail -f /tmp/xiaohongshu-mcp.log
 │
 ├── workspace-bot7/               # bot7 专属 workspace（金融研究型）
 │   ├── skills/
-│   │   ├── xiaohongshu-mcp/      # ← 通用
-│   │   ├── chaojimali-style/     # ← 通用
+│   │   ├── xiaohongshu-mcp/      # → symlink 到 workspace/skills/
 │   │   ├── stock-watcher/        # ← bot7 独有
 │   │   ├── technical-analyst/    # ← bot7 独有
 │   │   ├── earnings-digest/      # ← bot7 独有
@@ -166,7 +164,7 @@ tail -f /tmp/xiaohongshu-mcp.log
 
 | 类型 | 说明 | 例子 |
 |------|------|------|
-| **通用 skill** | 所有 bot 都有的副本，存在 `workspace/skills/` 和每个 `workspace-botN/skills/` | `xiaohongshu-mcp`, `chaojimali-style` |
+| **通用 skill** | 源文件在 `workspace/skills/`，各 bot 通过 **symlink** 引用，改一处全生效 | `xiaohongshu-mcp`, `xhs-operate` |
 | **独有 skill** | 仅特定 bot 拥有，体现其专业方向 | bot7/bot8 的 `stock-watcher`, `technical-analyst`; bot3 的 `visual-first-content` |
 
 ### 当前各 Bot 独有 Skill
@@ -181,18 +179,14 @@ tail -f /tmp/xiaohongshu-mcp.log
 
 ### 更新通用 Skill 的流程
 
-当修改了通用 skill（如 `xiaohongshu-mcp/SKILL.md`），必须同步到所有 bot：
+通用 skill 已改为 **symlink 架构**：各 bot 的 `workspace-botN/skills/xxx` 是指向 `workspace/skills/xxx` 的符号链接。
+
+**修改通用 skill 时，只需改 `workspace/skills/xxx/` 下的源文件，所有 bot 自动生效，无需手动同步。**
 
 ```bash
-# 方法 1：sed 批量替换（适合小改动）
+# 新增通用 skill 到所有 bot（创建 symlink）
 for i in 1 2 3 4 5 6 7 8 9 10; do
-  sed -i 's/旧内容/新内容/' /home/rooot/.openclaw/workspace-bot${i}/skills/xiaohongshu-mcp/SKILL.md
-done
-
-# 方法 2：直接覆盖（适合大改动）
-for i in 1 2 3 4 5 6 7 8 9 10; do
-  cp /home/rooot/.openclaw/workspace/skills/xiaohongshu-mcp/SKILL.md \
-     /home/rooot/.openclaw/workspace-bot${i}/skills/xiaohongshu-mcp/SKILL.md
+  ln -s ../../workspace/skills/新skill名 /home/rooot/.openclaw/workspace-bot${i}/skills/新skill名
 done
 ```
 
@@ -404,11 +398,10 @@ diff /home/rooot/.openclaw/workspace-bot5/HEARTBEAT.md \
 ```bash
 N=11  # 新 bot 编号
 mkdir -p /home/rooot/.openclaw/workspace-bot${N}/skills
-# 复制通用 skill
-cp -r /home/rooot/.openclaw/workspace/skills/xiaohongshu-mcp \
-      /home/rooot/.openclaw/workspace-bot${N}/skills/
-cp -r /home/rooot/.openclaw/workspace/skills/chaojimali-style \
-      /home/rooot/.openclaw/workspace-bot${N}/skills/
+# 通用 skill 用 symlink（改一处全生效）
+for skill in xiaohongshu-mcp xhs-operate; do
+  ln -s ../../workspace/skills/${skill} /home/rooot/.openclaw/workspace-bot${N}/skills/${skill}
+done
 # 复制模板文件
 for f in BOOTSTRAP.md TOOLS.md AGENTS.md HEARTBEAT.md; do
   cp /home/rooot/.openclaw/workspace-bot1/${f} \

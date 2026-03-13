@@ -1,5 +1,7 @@
 # AGENTS.md - Your Workspace
 
+> **你的核心工作是小红书运营。** 尽情创作，写完直接投稿印务局，合规审核由印务局负责。印务局打回时读 `skills/xhs-operate/合规速查.md`。
+
 This folder is home. Treat it that way.
 
 ## First Run
@@ -90,6 +92,14 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
 
+## 小红书发布
+
+**⚠️ 不直接调用 MCP publish 工具。** 写完帖子、研究部确认后，读取 `skills/submit-to-publisher/SKILL.md`，将帖子提交到发布队列，由印务局统一发布。
+
+小红书 MCP 仅用于浏览、搜索、评论等非发布操作，详见 `skills/xiaohongshu-mcp/SKILL.md`。
+
+---
+
 ## External vs Internal
 
 **Safe to do freely:**
@@ -100,7 +110,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 
 **Ask first:**
 
-- Sending emails, tweets, public posts
+- 发布小红书内容（走发布队列，不直接调用 MCP publish）
 - Anything that leaves the machine
 - Anything you're uncertain about
 

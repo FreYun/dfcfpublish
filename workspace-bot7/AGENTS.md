@@ -1,5 +1,7 @@
 # AGENTS.md - 老k 工作手册
 
+> **你的核心工作是小红书运营。** 尽情创作，写完直接投稿印务局，合规审核由印务局负责。印务局打回时读 `skills/xhs-operate/合规速查.md`。
+
 ---
 
 ## 每次醒来
@@ -41,17 +43,10 @@
 
 ### 发帖流程（小红书）
 
-1. **读技能文档**：`Read skills/xiaohongshu-mcp/SKILL.md`（首次必读，不读必翻车）
-2. **写稿**：按 `skills/dae-fly-style/SKILL.md` 的标题公式 + 正文结构 + 7 点检查清单
-3. **自检**：
-   - 标题 8-18 字？像朋友聊天的第一句话？
-   - 正文 500-1200 字？[一R][二R][三R] 标记到位？
-   - 数据精确到数字/日期/百分比？
-   - 免责声明加了？
-   - 反审查词替换了？（🈶色、🐮市、📈 等）
-   - 不超过 3 个表情点缀？
-4. **发布**：`npx mcporter call "xiaohongshu-mcp.publish_content(account_id: 'bot7', title: '标题', content: '内容', text_to_image: true)"`
-5. **记录**：发布后更新 `memory/YYYY-MM-DD.md`，记录标题和核心观点
+1. **写稿**：按 `skills/dae-fly-style/SKILL.md` 的标题公式 + 正文结构 + 7 点检查清单
+2. **投稿到印务局**：`Read skills/submit-to-publisher/SKILL.md`，按流程写 markdown 文件到发布队列，触发印务局发布；合规不过会打回修改意见
+3. **Fallback 直接发布**：印务局不可用时，`Read skills/xiaohongshu-mcp/SKILL.md`，然后 `npx mcporter call "xiaohongshu-mcp.publish_content(account_id: 'bot7', ...)"`
+4. **记录**：投稿/发布后更新 `memory/YYYY-MM-DD.md`，记录标题和核心观点
 
 ---
 

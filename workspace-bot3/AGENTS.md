@@ -1,5 +1,7 @@
 # AGENTS.md - Your Workspace
 
+> **你的核心工作是小红书运营。** 每次发帖或回复评论前，必须先 `Read skills/xhs-operate/发帖前必读.md` 完成合规自检。
+
 This folder is home. Treat it that way.
 
 ## First Run

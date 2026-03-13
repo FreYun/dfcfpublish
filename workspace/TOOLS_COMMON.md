@@ -12,6 +12,8 @@
 
 **在执行任何小红书操作之前，必须先 `Read skills/xiaohongshu-mcp/SKILL.md`，把完整流程加载到上下文。不读 SKILL.md 就操作 = 必翻车。**
 
+**发帖流程：写完帖子 → 提交印务局（`skills/submit-to-publisher/SKILL.md`）→ 任务完成。合规审核由印务局负责，bot 无需自行调用 compliance-mcp。**
+
 ### 铁律（违反必出事）
 
 1. **必须用 `npx mcporter call "xiaohongshu-mcp.工具名(account_id: 'botN', ...)"` 调用**
@@ -45,20 +47,22 @@ npx mcporter call "xiaohongshu-mcp.list_notes(account_id: 'botN')"
 npx mcporter call "xiaohongshu-mcp.search_feeds(account_id: 'botN', keyword: '关键词')"
 ```
 
-### MCP 服务离线时怎么办
+### 操作超时或失败时怎么办
 
-如果 mcporter 报 `offline` 或连接失败，**先读 `skills/xiaohongshu-mcp/SKILL.md` 的 Step -1**，里面有你专属端口的启动命令。
+**第一步：检查登录状态。** 大部分超时都是因为登录失效，浏览器在登录页卡住导致的。
 
-**启动模板**（端口号见你自己的 TOOLS.md）：
 ```bash
-XHS_BIN=/home/rooot/MCP/xiaohongshu-mcp/xiaohongshu-mcp
-nohup $XHS_BIN -headless=true -port=:你的端口 > /tmp/xiaohongshu-mcp-botN.log 2>&1 &
-sleep 2 && curl -s http://localhost:你的端口/health
+npx mcporter call "xiaohongshu-mcp.check_login_status(account_id: 'botN')"
 ```
 
+- 如果未登录 → 走 SKILL.md 的 Step 0 登录流程，向研究部发二维码请求扫码
+- 如果已登录 → 向研究部报告异常，不要反复重试
+
+**第二步：如果 mcporter 报 `offline` 或连接失败**，说明 MCP 服务本身没启动，向研究部报告。
+
 **禁止**：
-- 不要去 ls MCP 源码目录找启动方式
-- 不要尝试编译或修改源码
+- 不要反复重试超时的操作（浪费时间且可能产生重复发帖）
+- 不要尝试自行启动、编译或修改 MCP 源码
 - 不要用 Docker 启动
 
 ### 完整工具文档
@@ -71,7 +75,7 @@ sleep 2 && curl -s http://localhost:你的端口/health
 
 **必须使用 MCP 提供的搜索工具，内置 `web_search` 已禁用。**
 
-各 bot 的搜索工具可能不同（zhipu / dashscope / ddgs），以你自己的 TOOLS.md 或 mcporter.json 配置为准。
+各 bot 的搜索工具可能不同，以你自己的 TOOLS.md 或 mcporter.json 配置为准。
 
 ---
 
@@ -81,8 +85,10 @@ sleep 2 && curl -s http://localhost:你的端口/health
 
 - 严禁使用 Chrome 插件或任何浏览器扩展
 - 需要登录或 JS 渲染的页面用 browser 工具处理
-- 浏览器用完了必须关 tab（`browser close`）
+- **浏览器用完了必须关 tab（`browser close`）** — 不关会导致 renderer 进程卡死吃 CPU
 - ref 只在当前 snapshot 有效，页面变化后必须重新 snapshot
+- **每次使用 browser 工具完毕后，确认所有 tab 已关闭**。残留 tab 会在后台持续运行 JS，可能导致单个 renderer 进程占用 30%+ CPU
+- 如果发现浏览器操作超时或无响应，不要反复重试，先检查是否有卡住的进程
 
 ---
 

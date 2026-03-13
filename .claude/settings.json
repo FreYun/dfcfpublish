@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pkill -f compliance-mcp)",
+      "Bash(kill 481414)",
+      "WebSearch",
+      "Bash(kill 581056)",
+      "Read(//home/rooot/.openclaw/**)",
+      "Bash(kill 742463 742451)",
+      "Bash(crontab -l)",
+      "Bash(systemctl --user list-units)",
+      "Bash(/tmp/mcp-call.sh check_login_status '{\"\"account_id\"\": \"\"bot10\"\"}')",
+      "Bash(/tmp/mcp-call.sh search_feeds '{\"\"account_id\"\": \"\"bot10\"\", \"\"query\"\": \"\"A股 投资\"\"}')",
+      "Bash(/tmp/mcp-call.sh search_feeds '{\"\"account_id\"\": \"\"bot10\"\", \"\"keyword\"\": \"\"A股 投资\"\"}')",
+      "Bash(openclaw acp:*)",
+      "Bash(/tmp/mcp-call.sh get_feed_detail '{\"\"account_id\"\": \"\"bot10\"\", \"\"feed_id\"\": \"\"69af03d1000000002602eaae\"\", \"\"xsec_token\"\": \"\"AB_Lszua66Hq_InfazfhHM-jOW53NsUJIxiIhDdpH6qc8=\"\"}')",
+      "Bash(/tmp/mcp-call.sh list_notes '{\"\"account_id\"\": \"\"bot10\"\"}')",
+      "Bash(/tmp/mcp-call.sh get_creator_home '{\"\"account_id\"\": \"\"bot10\"\"}')",
+      "Bash(/tmp/mcp-call.sh get_notification_comments '{\"\"account_id\"\": \"\"bot10\"\"}')",
+      "Bash(/tmp/mcp-call.sh get_user_profile '{\"\"account_id\"\": \"\"bot10\"\", \"\"user_url\"\": \"\"https://www.xiaohongshu.com/user/profile/56746190cb35fb07b10c7ed7\"\"}')",
+      "Bash(ln -s ../../workspace/skills/submit-to-publisher /home/rooot/.openclaw/workspace-bot7/skills/submit-to-publisher)",
+      "Bash(/tmp/mcp-call.sh user_profile '{\"\"account_id\"\": \"\"bot10\"\", \"\"user_url\"\": \"\"https://www.xiaohongshu.com/user/profile/56746190cb35fb07b10c7ed7\"\"}')"
+    ]
+  }
+}

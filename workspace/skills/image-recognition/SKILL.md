@@ -34,10 +34,9 @@ Is the input a URL? (starts with http:// or https://)
 
 1. **Local file paths**: The `read` tool accepts absolute paths directly. No conversion needed.
 
-2. **Windows encoding issues**: If the path contains non-ASCII characters (e.g., Chinese), command-line tools may fail due to encoding. Workaround:
+2. **编码问题**: 如果路径含非 ASCII 字符（如中文），命令行工具可能失败。可先复制到 workspace：
    ```python
-   # Copy to workspace first, then read
-   import shutil; shutil.copy2(r"D:\中文路径\image.jpg", "temp.jpg")
+   import shutil; shutil.copy2("/home/rooot/图片/image.jpg", "temp.jpg")
    # Then use read tool with "temp.jpg"
    ```
 
@@ -49,17 +48,17 @@ User: "Describe this image: https://example.com/photo.jpg"
 → Directly use read tool with the URL
 ```
 
-### Example 2: Local File Path (ASCII only)
+### Example 2: Local File Path
 ```
-User: "What's in this image? C:\\photos\\vacation.jpg"
+User: "What's in this image? /home/rooot/photos/vacation.jpg"
 → Directly use read tool with the absolute path
 ```
 
 ### Example 2b: Local File Path (with Chinese characters)
 ```
-User: "分析一下这张图：D:\\图片\\截图.jpg"
+User: "分析一下这张图：/home/rooot/图片/截图.jpg"
 → Encoding issues may occur, copy first:
-  python -c "import shutil; shutil.copy2(r'D:\\图片\\截图.jpg', 'temp.jpg')"
+  python -c "import shutil; shutil.copy2('/home/rooot/图片/截图.jpg', 'temp.jpg')"
 → Then use read tool with "temp.jpg"
 ```
 
@@ -77,14 +76,14 @@ Converts local file paths to file:// URLs that can be used with the read tool.
 **Usage:**
 ```bash
 python scripts/path_to_url.py "/path/to/image.jpg"
-python scripts/path_to_url.py "C:\\Users\\name\\image.png"
+python scripts/path_to_url.py "/home/rooot/photos/image.png"
 ```
 
 **Output:** A file:// URL ready for use with read tool
 
 **Behavior:**
 - Validates that the file exists
-- Handles both Unix (/path) and Windows (C:\path) paths
+- Handles Unix paths (/path/to/file)
 - Properly escapes special characters
 - Returns error if file not found
 

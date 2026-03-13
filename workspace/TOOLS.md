@@ -1,10 +1,12 @@
-# TOOLS.md - Local Notes
+# TOOLS.md - MCP 工具使用指南
 
-## MCP 搜索工具使用指南
+**重要：** 网关 exec 环境里可能没有全局 `mcporter`，一律用 **`npx mcporter`**，且需在 **workspace 目录**（`/home/rooot/.openclaw/workspace`）下执行，才能找到 `config/mcporter.json`。
 
-**重要：** 网关 exec 环境里可能没有全局 `mcporter`，一律用 **`npx mcporter`**，且需在 **workspace 目录**（`D:\.openclaw\workspace`）下执行，才能找到 `config/mcporter.json`。
+---
 
-### 首选：dashscope_websearch（阿里云百炼，国内最快最稳）
+## MCP 搜索工具
+
+### dashscope_websearch（阿里云百炼）
 
 **默认用这个！** API Key 已配置，直接调用。
 
@@ -22,54 +24,11 @@ npx mcporter call dashscope_websearch.bailian_web_search query="关键词" count
 - ✅ 支持中英文搜索
 - ✅ 阿里云百炼官方服务，稳定可靠
 
-**API Key：** `sk-8937a309c5f04f909aabd1ad255b3654`（已配置在 mcporter.json）
-
----
-
-### 备用：ddgs_search（本地 DuckDuckGo）
-
-当 dashscope 不可用时用这个。
-
-```bash
-npx mcporter call ddgs_search.web_search query="关键词"
-```
-
-**特点：**
-- ✅ 本地运行，无需 API Key
-- ⚠️ 中文搜索偶尔跑偏，返回不相关内容
-
----
-
-### 备用：ddgsearch.monica-search（AI 生成答案）
-
-需要 AI 总结时用这个。
-
-```bash
-npx mcporter call ddgsearch.monica-search query="关键词"
-```
-
-**特点：**
-- ✅ AI 生成综合答案，带引用
-- ⚠️ 比原始搜索慢
-
----
-
-### 已弃用/不推荐
-
-| 工具 | 问题 |
-|------|------|
-| `ddgsearch.web-search` | 经常 canceled，不稳定 |
-| `ddgsearch.iask-search` | 国内容易被墙 |
-| `kimi web_search` | 经常"Search completed but no final answer" |
-| `heventure-search-mcp` | 入口脚本有 bug，无法正常运行 |
-| `websearch` (slinusc) | 依赖 SearXNG，DuckDuckGo 在国内被墙 |
-| `mcpadvisor` | Windows 上 sharp 依赖下载失败 |
-
 ---
 
 ## MCP 图片识别工具
 
-### 首选：image-recognition（阿里云百炼，推荐）
+### 首选：image-recognition（阿里云百炼）
 
 **默认用这个！** API Key 已配置。
 
@@ -88,11 +47,10 @@ npx mcporter call image-recognition.recognize_image image_url="..." custom_promp
 - ✅ 阿里云千问视觉模型，识别准确
 - ✅ 支持 OCR、通用图片理解
 - ✅ 支持自定义提示词
-- ✅ API Key 已配置
 
 ---
 
-### 备用：paddleocr-mcp（本地部署，免费）
+### 备用：paddleocr-mcp（本地 OCR，免费）
 
 **本地 OCR，数据不出内网。**
 
@@ -101,7 +59,7 @@ npx mcporter call image-recognition.recognize_image image_url="..." custom_promp
 npx mcporter call paddleocr-mcp.ocr_image image_url="https://example.com/image.jpg"
 
 # 识别本地图片
-npx mcporter call paddleocr-mcp.ocr_image image_path="C:\\path\\to\\image.png"
+npx mcporter call paddleocr-mcp.ocr_image image_path="/path/to/image.png"
 
 # 识别 base64 图片
 npx mcporter call paddleocr-mcp.ocr_image image_base64="data:image/png;base64,..."
@@ -117,57 +75,7 @@ npx mcporter call paddleocr-mcp.ocr_image image_base64="data:image/png;base64,..
 
 ---
 
-## MCP 文件系统 / 搜索工具（强力 read / list / grep）
-
-好狗自带的 `read`、`list` 等是网关内置工具；下面两个 MCP 可做**更强、更专**的读写与搜索，通过 `npx mcporter call` 调用。
-
-### 1. filesystem（官方 MCP：读、写、列目录、搜索）
-
-**@modelcontextprotocol/server-filesystem**，可访问范围：`D:\.openclaw`（仅此目录树，安全）。
-
-```bash
-# 列目录
-npx mcporter call filesystem.list_directory path="D:\\.openclaw\\workspace"
-
-# 读单个文件
-npx mcporter call filesystem.read_file path="D:\\.openclaw\\.openclaw\\config\\mcporter.json"
-
-# 按 glob 搜索文件/目录名
-npx mcporter call filesystem.search_files path="D:\\.openclaw" pattern="*.json"
-
-# 按内容 grep（正则）
-npx mcporter call filesystem.grep_files path="D:\\.openclaw" pattern="mcpServers"
-```
-
-**工具一览：** `read_file`、`read_multiple_files`、`write_file`、`edit_file`、`list_directory`、`search_files`、`grep_files`、`create_directory`、`move_file`、`get_file_info`。
-
----
-
-### 2. mcp-grep（专用 grep：自然语言 + 正则）
-
-**@247arjun/mcp-grep**，适合在项目里做**强力内容搜索**。
-
-```bash
-# 自然语言描述要搜啥（推荐）
-npx mcporter call mcp-grep.grep_search_intent intent="查找所有调用 dashscope 的代码"
-
-# 直接正则
-npx mcporter call mcp-grep.grep_regex pattern="gateway.*port" path="D:\\.openclaw"
-
-# 只列出包含匹配的文件名
-npx mcporter call mcp-grep.grep_files_with_matches pattern="openclaw" path="D:\\.openclaw"
-
-# 统计匹配次数
-npx mcporter call mcp-grep.grep_count pattern="mcp" path="D:\\.openclaw\\.openclaw\\workspace"
-```
-
-**工具一览：** `grep_search_intent`、`grep_regex`、`grep_count`、`grep_files_with_matches`、`grep_advanced`。
-
----
-
----
-
-## Browser 浏览器操作准则（cursor大哥亲授，血泪教训）
+## Browser 浏览器操作准则
 
 ### 核心铁律：ref 只用一次
 - **任何 ref（e1、e2、e67 等）只在生成它的那一次 snapshot 里有效**
@@ -204,7 +112,7 @@ npx mcporter call mcp-grep.grep_count pattern="mcp" path="D:\\.openclaw\\.opencl
 
 **其他情况一律优先「重新 snapshot + 换 ref」，而不是「重启一切」。**
 
-### 广告与登录拦截处理（重要！）
+### 广告与登录拦截处理
 
 **1. 遇到页面广告导致无法点击时：**
 - 必须先关闭广告（找关闭按钮/X），再继续操作
@@ -215,13 +123,12 @@ npx mcporter call mcp-grep.grep_count pattern="mcp" path="D:\\.openclaw\\.opencl
 - 请示用户，等待其完成登录后再继续
 - 绝不擅自处理登录流程
 
-### 收尾工作（血泪教训！）
+### 收尾工作
 
 **浏览器用完了必须关 tab！**
 
 - 任务完成后，立即 `browser close` 关闭刚才打开的 tab
-- 不要留着 tab 在那占着，用户会不爽
-- 这是基本礼貌，也是好习惯
+- 不要留着 tab 在那占着
 
 ```bash
 browser close targetId="刚才那个 tab 的 ID"
@@ -232,21 +139,3 @@ browser close targetId="刚才那个 tab 的 ID"
 ## Gateway 重启权限
 - **我不自己重启 gateway**
 - 需要重启时告知用户，由用户来操作
-
----
-
-## 其他工具
-
-### Cameras
-
-- living-room → Main area, 180° wide angle
-- front-door → Entrance, motion-triggered
-
-### SSH
-
-- home-server → 192.168.1.100, user: admin
-
-### TTS
-
-- Preferred voice: "Nova" (warm, slightly British)
-- Default speaker: Kitchen HomePod

@@ -24,6 +24,15 @@
 
 ---
 
+### 4. 系统健康巡检（每次心跳）
+
+检查浏览器进程是否有卡死的 renderer：
+- 执行 `ps aux | grep "bot8/user-data" | grep renderer`，查看是否有 CPU >20% 且运行超过 10 分钟的进程
+- 如有，`kill <PID>` 清理，记录到 daily notes
+- 确保没有残留的 browser tab（残留 tab 会导致 renderer 卡死吃 CPU）
+
+---
+
 ## 静默条件
 
 以下情况 → 直接回复 `HEARTBEAT_OK`，不打扰用户：

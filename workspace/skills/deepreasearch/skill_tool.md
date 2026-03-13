@@ -174,13 +174,11 @@ print(fi[["end_date", "roe", "eps"]].head())
 {
   "mcpServers": {
     "finance-data": {
-      "command": "C:\\Python314\\Scripts\\finance-data-mcp.exe"
+      "command": "/usr/local/bin/finance-data-mcp"
     }
   }
 }
 ```
-
-（Windows 路径里反斜杠要写两个 `\\`，或者用正斜杠 `/` 也行）
 
 ### 第三步：重启 AI 客户端
 

@@ -9,12 +9,21 @@
 - [ ] 若今天有过对话/操作但当日日记仍只有「本日无记录」，补一小段当日小结
 - [ ] 是否有值得写入 MEMORY.md 的长期经验（研究部偏好、内容规律、踩坑教训）
 
-### 内容与发布（可选）
-- [ ] 是否有黄金相关热点适合发一条日常简评（按 CONTENT_STYLE 执行）
+### 素材巡逻（定时：10:00、20:00）
+- [ ] 执行 `skills/xhs-topic-collector/SKILL.md` — 巡逻小红书和外部信息源，收集选题灵感写入 `topic-library.md`
+- [ ] 巡逻完成后简短汇报新增素材数量
+
+### 内容策划与发布（定时：9:00、13:00、18:00）
+- [ ] 执行 `skills/xhs-content-planner/SKILL.md` — 从素材库推荐 3 个选题，用户选定后生成内容并发布
+- [ ] 注意智能跳过：当天已发帖则跳过本次推荐（用户主动要求除外）
 - [ ] 是否临近月度复盘节点，需要准备复盘提纲或初稿
 
 ### 小红书互动（若研究部有要求）
 - [ ] 是否需要查看通知、回复评论（使用 MCP `get_notification_comments` / `reply_notification_comment`）
+
+### 系统健康巡检
+- [ ] **检查浏览器进程**：执行 `ps aux | grep "bot5/user-data" | grep renderer` 查看是否有 CPU 占用 >20% 且运行超过 10 分钟的 renderer 进程。如有，`kill <PID>` 清理，并记录到当日日记
+- [ ] **检查 tab 残留**：如果当前没有在用 browser 工具，确保没有残留的浏览器 tab（残留 tab 会导致 renderer 卡死吃 CPU）
 
 ## 规则
 

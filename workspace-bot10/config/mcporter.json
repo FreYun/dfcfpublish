@@ -1,11 +1,11 @@
 {
-  "mcpServers": {
-    "finance-data": {
-      "url": "http://localhost:8000/sse"
+    "mcpServers": {
+        "xiaohongshu-mcp": {
+            "url": "http://localhost:18070/mcp"
+        },
+        "compliance-mcp": {
+            "url": "http://localhost:18090/mcp"
+        }
     },
-    "xiaohongshu-mcp": {
-      "url": "http://localhost:18060/mcp"
-    }
-  },
-  "imports": []
+    "imports": []
 }

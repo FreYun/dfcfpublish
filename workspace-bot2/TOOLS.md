@@ -7,4 +7,4 @@
 ## Bot 专属配置
 
 - **account_id**: `bot2`
-- **小红书 MCP 端口**: 18060（共享实例，已配置在 mcporter.json）
+- **小红书 MCP 端口**: 18062（共享实例，已配置在 mcporter.json）

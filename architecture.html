@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenClaw Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a2e;
+    color: #e0e0e0;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 2;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      transparent, transparent 2px,
+      rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Pixel border mixin via box-shadow */
+  .pixel-box {
+    background: #1a1a4e;
+    border: 4px solid;
+    image-rendering: pixelated;
+    box-shadow:
+      4px 4px 0 0 rgba(0,0,0,0.5),
+      inset 2px 2px 0 0 rgba(255,255,255,0.1);
+  }
+
+  .container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 30px 20px;
+    margin-bottom: 30px;
+    border-color: #ffcc00;
+    background: linear-gradient(180deg, #1a1a4e 0%, #0d0d3a 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '⚔️';
+    position: absolute;
+    left: 20px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 40px;
+    animation: float 2s ease-in-out infinite;
+  }
+
+  .header::after {
+    content: '🐉';
+    position: absolute;
+    right: 20px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 40px;
+    animation: float 2s ease-in-out infinite 0.5s;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(-50%) translateY(0); }
+    50% { transform: translateY(-50%) translateY(-8px); }
+  }
+
+  .header h1 {
+    font-size: 36px;
+    color: #ffcc00;
+    text-shadow: 3px 3px 0 #aa6600, 0 0 20px rgba(255,204,0,0.3);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+
+  .header .subtitle {
+    color: #88aaff;
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-val {
+    font-size: 32px;
+    color: #00ff88;
+    text-shadow: 0 0 10px rgba(0,255,136,0.4);
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: #7799bb;
+    margin-top: 4px;
+    display: block;
+  }
+
+  /* Section headers */
+  .section-title {
+    font-size: 20px;
+    color: #ffcc00;
+    padding: 10px 16px;
+    margin: 25px 0 15px;
+    border-left: 6px solid #ffcc00;
+    text-shadow: 2px 2px 0 #664400;
+  }
+
+  /* ====== CENTRAL COMMAND ====== */
+  .central-cmd {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .infra-agent {
+    padding: 14px;
+    border-color: #ff6644;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s;
+  }
+
+  .infra-agent:hover {
+    transform: translateY(-3px);
+    box-shadow: 4px 7px 0 0 rgba(0,0,0,0.5),
+      inset 2px 2px 0 0 rgba(255,255,255,0.1),
+      0 0 20px rgba(255,102,68,0.2);
+  }
+
+  .infra-agent .emoji {
+    font-size: 42px;
+    display: block;
+    margin-bottom: 6px;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.3));
+  }
+
+  .infra-agent .name {
+    font-size: 14px;
+    color: #ff8866;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .infra-agent .name-cn {
+    font-size: 18px;
+    color: #ffaa88;
+    display: block;
+    margin-bottom: 6px;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  .infra-agent .role {
+    font-size: 12px;
+    color: #99aabb;
+    line-height: 1.6;
+  }
+
+  .infra-agent .cron-tag {
+    display: inline-block;
+    background: #332244;
+    color: #cc88ff;
+    padding: 2px 6px;
+    margin-top: 6px;
+    font-size: 10px;
+    border: 1px solid #553377;
+  }
+
+  /* ====== BOT GRID ====== */
+  .bot-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .bot-card {
+    padding: 12px;
+    border-color: #4488ff;
+    position: relative;
+    transition: all 0.2s;
+    min-height: 200px;
+  }
+
+  .bot-card:hover {
+    transform: translateY(-3px);
+    border-color: #66aaff;
+    box-shadow: 4px 7px 0 0 rgba(0,0,0,0.5),
+      inset 2px 2px 0 0 rgba(255,255,255,0.1),
+      0 0 15px rgba(68,136,255,0.2);
+  }
+
+  .bot-card.active { border-color: #00ff88; }
+  .bot-card.inactive { border-color: #555577; opacity: 0.6; }
+
+  .bot-card .bot-id {
+    font-size: 12px;
+    color: #556688;
+    position: absolute;
+    top: 6px; right: 8px;
+  }
+
+  .bot-card .port {
+    font-size: 10px;
+    color: #445566;
+    position: absolute;
+    bottom: 6px; right: 8px;
+  }
+
+  .bot-card .avatar {
+    font-size: 36px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .bot-card .bot-name {
+    font-size: 14px;
+    color: #66ccff;
+    display: block;
+    margin-bottom: 2px;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  .bot-card .bot-role {
+    font-size: 12px;
+    color: #889aab;
+    line-height: 1.6;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .bot-card .skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+
+  .skill-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 10px;
+    border: 1px solid;
+  }
+
+  .skill-tag.shared {
+    color: #88ddaa;
+    border-color: #336644;
+    background: #112211;
+  }
+
+  .skill-tag.unique {
+    color: #ffaa44;
+    border-color: #664422;
+    background: #221100;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 0;
+    margin-right: 4px;
+    animation: blink 2s infinite;
+  }
+
+  .status-dot.on { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
+  .status-dot.off { background: #555555; animation: none; }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ====== INFRASTRUCTURE ====== */
+  .infra-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .infra-box {
+    padding: 14px;
+    border-color: #aa44ff;
+  }
+
+  .infra-box .title {
+    font-size: 14px;
+    color: #cc88ff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .infra-box .title .icon { font-size: 28px; }
+
+  .infra-box .desc {
+    font-size: 12px;
+    color: #8899aa;
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+
+  .infra-box .detail-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .infra-box .detail-list li {
+    font-size: 11px;
+    color: #7788aa;
+    padding: 2px 0;
+    border-bottom: 1px solid #222244;
+  }
+
+  .infra-box .detail-list li::before {
+    content: '▸ ';
+    color: #aa44ff;
+  }
+
+  /* ====== DATA FLOW ====== */
+  .flow-diagram {
+    padding: 20px;
+    border-color: #44aaff;
+    margin-bottom: 20px;
+    overflow-x: auto;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 6px 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-node {
+    padding: 10px 18px;
+    border: 3px solid;
+    text-align: center;
+    font-size: 12px;
+    min-width: 120px;
+    position: relative;
+  }
+
+  .flow-node.primary {
+    border-color: #ffcc00;
+    color: #ffcc00;
+    background: #1a1500;
+  }
+
+  .flow-node.secondary {
+    border-color: #44aaff;
+    color: #44aaff;
+    background: #0a1a2a;
+  }
+
+  .flow-node.tertiary {
+    border-color: #00ff88;
+    color: #00ff88;
+    background: #001a0a;
+  }
+
+  .flow-node.external {
+    border-color: #ff6644;
+    color: #ff6644;
+    background: #1a0a00;
+  }
+
+  .flow-arrow {
+    color: #556677;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .flow-arrow-down {
+    text-align: center;
+    color: #556677;
+    font-size: 16px;
+    letter-spacing: 20px;
+    margin: 2px 0;
+  }
+
+  /* ====== FILE TREE ====== */
+  .file-tree {
+    padding: 16px;
+    border-color: #44aa88;
+    font-size: 12px;
+    line-height: 2;
+    overflow-x: auto;
+  }
+
+  .file-tree .dir { color: #44ddaa; }
+  .file-tree .file { color: #88aacc; }
+  .file-tree .symlink { color: #cc88ff; font-style: italic; }
+  .file-tree .comment { color: #556677; }
+
+  /* ====== MEMORY LAYERS ====== */
+  .memory-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 20px;
+  }
+
+  .memory-layer {
+    padding: 12px 16px;
+    border: 3px solid;
+    text-align: center;
+  }
+
+  .memory-layer:nth-child(1) {
+    border-color: #ffcc00;
+    background: linear-gradient(90deg, #1a1500, #2a2000, #1a1500);
+    color: #ffcc00;
+  }
+
+  .memory-layer:nth-child(2) {
+    border-color: #44aaff;
+    background: linear-gradient(90deg, #0a1a2a, #102a3a, #0a1a2a);
+    color: #44aaff;
+  }
+
+  .memory-layer:nth-child(3) {
+    border-color: #00ff88;
+    background: linear-gradient(90deg, #001a0a, #002a14, #001a0a);
+    color: #00ff88;
+  }
+
+  .memory-layer .layer-name {
+    font-size: 14px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .memory-layer .layer-desc {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  /* ====== CRON TABLE ====== */
+  .cron-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .cron-table th {
+    background: #222255;
+    color: #cc88ff;
+    padding: 8px;
+    text-align: left;
+    border-bottom: 2px solid #aa44ff;
+  }
+
+  .cron-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #222244;
+    color: #8899aa;
+  }
+
+  .cron-table tr:hover td {
+    background: #1a1a44;
+  }
+
+  .cron-expr {
+    font-family: 'Courier New', monospace;
+    color: #00ff88;
+    background: #002200;
+    padding: 1px 4px;
+    border: 1px solid #005500;
+  }
+
+  /* ====== FOOTER ====== */
+  .footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 11px;
+    color: #445566;
+    border-top: 2px solid #222244;
+    margin-top: 30px;
+  }
+
+  .footer .version {
+    color: #ffcc00;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* ====== LEGEND ====== */
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border-color: #333355;
+    margin-bottom: 20px;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #8899aa;
+  }
+
+  .legend-color {
+    width: 12px; height: 12px;
+    border: 2px solid;
+    flex-shrink: 0;
+  }
+
+  /* 2-col layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 1000px) {
+    .bot-grid { grid-template-columns: repeat(3, 1fr); }
+    .central-cmd { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 700px) {
+    .bot-grid { grid-template-columns: repeat(2, 1fr); }
+    .infra-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ========== HEADER ========== -->
+  <div class="header pixel-box">
+    <h1>OPENCLAW</h1>
+    <div class="subtitle">Multi-Agent Orchestration System v1.0</div>
+    <div class="stats-bar">
+      <div class="stat">
+        <span class="stat-val">10</span>
+        <span class="stat-label">CONTENT BOTS</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val">5</span>
+        <span class="stat-label">INFRA AGENTS</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val">28</span>
+        <span class="stat-label">SHARED SKILLS</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val">11</span>
+        <span class="stat-label">MCP PORTS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== LEGEND ========== -->
+  <div class="legend pixel-box">
+    <div class="legend-item">
+      <div class="legend-color" style="border-color:#00ff88; background:#00ff8833;"></div>
+      ACTIVE BOT
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="border-color:#555577; background:#55557733;"></div>
+      UNINITIALIZED
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="border-color:#ff6644; background:#ff664433;"></div>
+      INFRA AGENT
+    </div>
+    <div class="legend-item">
+      <span class="skill-tag shared">SHARED</span>
+    </div>
+    <div class="legend-item">
+      <span class="skill-tag unique">UNIQUE</span>
+    </div>
+  </div>
+
+  <!-- ========== CENTRAL COMMAND ========== -->
+  <div class="section-title">⚙ CENTRAL COMMAND</div>
+
+  <div class="central-cmd">
+    <div class="infra-agent pixel-box" style="grid-column: span 2;">
+      <span class="emoji">👑</span>
+      <span class="name">bot_main</span>
+      <span class="name-cn">魏忠贤 · 大内总管</span>
+      <span class="role">
+        Central authority. Oversees all 10 bots.<br>
+        Security audits · Status monitoring · Dispatch
+      </span>
+      <span class="cron-tag">*/30 8-23 * * *</span>
+      <span class="cron-tag">0 12 * * *</span>
+    </div>
+    <div class="infra-agent pixel-box">
+      <span class="emoji">🛡️</span>
+      <span class="name">security</span>
+      <span class="name-cn">安全部</span>
+      <span class="role">
+        Anomaly detection<br>Incident response<br>Hourly heartbeat
+      </span>
+      <span class="cron-tag">7 * * * *</span>
+    </div>
+    <div class="infra-agent pixel-box">
+      <span class="emoji">🧩</span>
+      <span class="name">skills</span>
+      <span class="name-cn">技能部</span>
+      <span class="role">
+        Skill inventory<br>Symlink sync<br>Plugin catalog
+      </span>
+      <span class="cron-tag">0 12,19 * * *</span>
+    </div>
+  </div>
+
+  <div class="central-cmd" style="grid-template-columns: 1fr 1fr;">
+    <div class="infra-agent pixel-box">
+      <span class="emoji">📮</span>
+      <span class="name">mcp_publisher</span>
+      <span class="name-cn">印务局</span>
+      <span class="role">
+        Publishing execution<br>Compliance review<br>Queue management
+      </span>
+      <span class="cron-tag">ON-DEMAND</span>
+    </div>
+    <div class="infra-agent pixel-box">
+      <span class="emoji">📊</span>
+      <span class="name">portfolio-service</span>
+      <span class="name-cn">投资组合</span>
+      <span class="role">
+        Financial tracking<br>Daily portfolio refresh<br>MCP plugin
+      </span>
+      <span class="cron-tag">DAILY</span>
+    </div>
+  </div>
+
+  <!-- ========== BOT FLEET ========== -->
+  <div class="section-title">🤖 BOT FLEET (10 AGENTS)</div>
+
+  <div class="bot-grid">
+    <!-- bot1 -->
+    <div class="bot-card pixel-box active">
+      <span class="bot-id">#01</span>
+      <span class="port">:18061</span>
+      <span class="avatar">💰</span>
+      <span class="status-dot on"></span>
+      <span class="bot-name">来财妹妹</span>
+      <span class="bot-role">Content creator · Energetic</span>
+      <div class="skills-list">
+        <span class="skill-tag shared">xhs-mcp</span>
+        <span class="skill-tag shared">xhs-operate</span>
+        <span class="skill-tag unique">fupan</span>
+      </div>
+    </div>
+
+    <!-- bot2 -->
+    <div class="bot-card pixel-box inactive">
+      <span class="bot-id">#02</span>
+      <span class="port">:18062</span>
+      <span class="avatar">🔲</span>
+      <span class="status-dot off"></span>
+      <span class="bot-name">未初始化</span>
+      <span class="bot-role">Standby</span>
+      <div class="skills-list">
+        <span class="skill-tag shared">xhs-mcp</span>
+      </div>
+    </div>
+
+    <!-- bot3 -->
+    <div class="bot-card pixel-box inactive">
+      <span class="bot-id">#03</span>
+      <span class="port">:18063</span>
+      <span class="avatar">🔲</span>
+      <span class="status-dot off"></span>
+      <span class="bot-name">未初始化</span>
+      <span class="bot-role">Standby</span>
+      <div class="skills-list">
+        <span class="skill-tag shared">xhs-mcp</span>
+      </div>
+    </div>
+
+    <!-- bot4 -->
+    <div class="bot-card pixel-box active">
+      <span class="bot-id">#04</span>
+      <span class="port">:18064</span>
+      <span class="avatar">📋</span>
+      <span class="status-dot on"></span>
+      <span class="bot-name">研报翻译官</span>
+      <span class="bot-role">Report interpreter · Analyst</span>
+      <div class="skills-list">
+        <span class="skill-tag shared">xhs-mcp</span>
+        <span class="skill-tag shared">compliance</span>
+        <span class="skill-tag unique">report-*</span>
+      </div>
+    </div>
+
+    <!-- bot5 -->
+    <div class="bot-card pixel-box active">
+      <span class="bot-id">#05</span>
+      <span class="port">:18065</span>
+      <span class="avatar">🪙</span>
+      <span class="status-dot on"></span>
+      <span class="bot-name">宣妈慢慢变富</span>
+      <span class="bot-role">Gold & commodities · Mom life</span>
+      <div class="skills-list">
+        <span class="skill-tag shared">xhs-mcp</span>
+        <span class="skill-tag shared">compliance</span>
+        <span class="skill-tag unique">content-planner</span>
+        <span class="skill-tag unique">topic-collector</span>
+      </div>
+    </div>
+
+    <!-- bot6 -->
+    <div class="bot-card pixel-box inactive">
+      <span class="bot-id">#06</span>
+      <span class="port">:18066</span>
+      <span class="avatar">🔲</span>
+      <span class="status-dot off"></span>
+      <span class="bot-name">未初始化</span>
+      <span class="bot-role">Standby</span>
+      <div class="skills-list">
+        <span class="skill-tag shared">xhs-mcp</span>
+      </div>
+    </div>
+
+    <!-- bot7 -->
+    <div class="bot-card pixel-box active">
+      <span class="bot-id">#07</span>
+      <span class="port">:18067</span>
+      <span class="avatar">📈</span>
+      <span class="status-dot on"></span>
+      <span class="bot-name">老K投资笔记</span>
+      <span class="bot-role">Research analyst · Data-driven</span>
+      <div class="skills-list">
+        <span class="skill-tag shared">xhs-mcp</span>
+        <span class="skill-tag shared">compliance</span>
+        <span class="skill-tag unique">stock-watcher</span>
+        <span class="skill-tag unique">tech-analyst</span>
+        <span class="skill-tag unique">earnings</span>
+        <span class="skill-tag unique">flow-watch</span>
+      </div>
+    </div>
+
+    <!-- bot8 -->
+    <div class="bot-card pixel-box active">
+      <span class="bot-id">#08</span>
+      <span class="port">:18068</span>
+      <span class="avatar">📊</span>
+      <span class="status-dot on"></span>
+      <span class="bot-name">老k</span>
+      <span class="bot-role">Tech research · Finance</span>
+      <div class="skills-list">
+        <span class="skill-tag shared">xhs-mcp</span>
+        <span class="skill-tag shared">compliance</span>
+        <span class="skill-tag unique">stock-watcher</span>
+        <span class="skill-tag unique">tech-analyst</span>
+      </div>
+    </div>
+
+    <!-- bot9 -->
+    <div class="bot-card pixel-box inactive">
+      <span class="bot-id">#09</span>
+      <span class="port">:18069</span>
+      <span class="avatar">🔲</span>
+      <span class="status-dot off"></span>
+      <span class="bot-name">未初始化</span>
+      <span class="bot-role">Standby</span>
+      <div class="skills-list">
+        <span class="skill-tag shared">xhs-mcp</span>
+      </div>
+    </div>
+
+    <!-- bot10 -->
+    <div class="bot-card pixel-box inactive">
+      <span class="bot-id">#10</span>
+      <span class="port">:18070</span>
+      <span class="avatar">🔲</span>
+      <span class="status-dot off"></span>
+      <span class="bot-name">未初始化</span>
+      <span class="bot-role">Standby</span>
+      <div class="skills-list">
+        <span class="skill-tag shared">xhs-mcp</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== DATA FLOW ========== -->
+  <div class="section-title">⇄ DATA FLOW</div>
+
+  <div class="flow-diagram pixel-box">
+    <div class="flow-row">
+      <div class="flow-node external">研究部 (User)</div>
+    </div>
+    <div class="flow-arrow-down">↓ ↓ ↓</div>
+    <div class="flow-row">
+      <div class="flow-node primary">飞书 Feishu</div>
+      <span class="flow-arrow">⇄</span>
+      <div class="flow-node primary">bot_main 魏忠贤</div>
+      <span class="flow-arrow">⇄</span>
+      <div class="flow-node secondary">Cron Scheduler</div>
+    </div>
+    <div class="flow-arrow-down">↓ ↓ ↓</div>
+    <div class="flow-row">
+      <div class="flow-node secondary">bot1</div>
+      <div class="flow-node secondary">bot4</div>
+      <div class="flow-node secondary">bot5</div>
+      <div class="flow-node secondary">bot7</div>
+      <div class="flow-node secondary">bot8</div>
+    </div>
+    <div class="flow-arrow-down">↓ ↓ ↓</div>
+    <div class="flow-row">
+      <div class="flow-node tertiary">publish-queue/</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary">mcp_publisher 印务局</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node tertiary">compliance-mcp</div>
+    </div>
+    <div class="flow-arrow-down">↓</div>
+    <div class="flow-row">
+      <div class="flow-node external">小红书 Xiaohongshu</div>
+    </div>
+  </div>
+
+  <!-- ========== INFRASTRUCTURE ========== -->
+  <div class="section-title">🔧 INFRASTRUCTURE</div>
+
+  <div class="infra-grid">
+    <!-- MCP Servers -->
+    <div class="infra-box pixel-box">
+      <div class="title"><span class="icon">🔌</span> MCP SERVERS</div>
+      <div class="desc">Each bot runs isolated xiaohongshu-mcp on dedicated port</div>
+      <ul class="detail-list">
+        <li>Go + Rod headless browser</li>
+        <li>Chrome profiles: ~/.xhs-profiles/botN/</li>
+        <li>SSE stateful sessions</li>
+        <li>Source: ~/MCP/xiaohongshu-mcp/</li>
+        <li>Port range: 18060-18070</li>
+      </ul>
+    </div>
+
+    <!-- Session System -->
+    <div class="infra-box pixel-box">
+      <div class="title"><span class="icon">💾</span> SESSION SYSTEM</div>
+      <div class="desc">File-based conversation persistence</div>
+      <ul class="detail-list">
+        <li>agents/botN/sessions/*.jsonl</li>
+        <li>UUID-based session IDs</li>
+        <li>Delivery context tracking</li>
+        <li>Auto-reset on errors</li>
+        <li>Auth profiles per bot</li>
+      </ul>
+    </div>
+
+    <!-- Cron System -->
+    <div class="infra-box pixel-box">
+      <div class="title"><span class="icon">⏰</span> CRON SYSTEM</div>
+      <div class="desc">Scheduled job dispatcher</div>
+      <ul class="detail-list">
+        <li>cron/jobs.json definitions</li>
+        <li>cron/runs/ execution logs</li>
+        <li>Asia/Shanghai timezone</li>
+        <li>agentTurn dispatch model</li>
+        <li>Isolated or main session target</li>
+      </ul>
+    </div>
+
+    <!-- Feishu Integration -->
+    <div class="infra-box pixel-box">
+      <div class="title"><span class="icon">💬</span> FEISHU MESSAGING</div>
+      <div class="desc">Primary communication backbone</div>
+      <ul class="detail-list">
+        <li>Message dedup: feishu/dedup/</li>
+        <li>Per-agent message tracking</li>
+        <li>Chat ID based routing</li>
+        <li>bot_main as spokesperson</li>
+      </ul>
+    </div>
+
+    <!-- Publish Pipeline -->
+    <div class="infra-box pixel-box">
+      <div class="title"><span class="icon">📤</span> PUBLISH PIPELINE</div>
+      <div class="desc">4-stage content publishing queue</div>
+      <ul class="detail-list">
+        <li>pending/ → publishing/</li>
+        <li>→ published/ or failed/</li>
+        <li>Per-bot queues available</li>
+        <li>JSON metadata per entry</li>
+        <li>Compliance gate before publish</li>
+      </ul>
+    </div>
+
+    <!-- Identity & Auth -->
+    <div class="infra-box pixel-box">
+      <div class="title"><span class="icon">🔐</span> IDENTITY & AUTH</div>
+      <div class="desc">Device & bot-level auth system</div>
+      <ul class="detail-list">
+        <li>identity/device-auth.json</li>
+        <li>Per-bot API credentials</li>
+        <li>Kimi, Legacylands integrations</li>
+        <li>Usage stats tracking</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ========== MEMORY & WORKSPACE ========== -->
+  <div class="section-title">🧠 MEMORY ARCHITECTURE</div>
+
+  <div class="two-col">
+    <div>
+      <div class="memory-stack">
+        <div class="memory-layer">
+          <span class="layer-name">SOUL.md + IDENTITY.md</span>
+          <span class="layer-desc">Core values · Persona · Boundaries (immutable by bot)</span>
+        </div>
+        <div class="memory-layer">
+          <span class="layer-name">MEMORY.md</span>
+          <span class="layer-desc">Long-term curated knowledge · Patterns · Lessons</span>
+        </div>
+        <div class="memory-layer">
+          <span class="layer-name">memory/YYYY-MM-DD.md</span>
+          <span class="layer-desc">Daily journals · Raw records · Interaction logs</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="file-tree pixel-box">
+      <span class="dir">workspace-botN/</span><br>
+      &nbsp;&nbsp;├── <span class="file">IDENTITY.md</span> <span class="comment">← who am i</span><br>
+      &nbsp;&nbsp;├── <span class="file">SOUL.md</span> <span class="comment">← core values</span><br>
+      &nbsp;&nbsp;├── <span class="file">AGENTS.md</span> <span class="comment">← workflows</span><br>
+      &nbsp;&nbsp;├── <span class="file">TOOLS.md</span> <span class="comment">← mcp config</span><br>
+      &nbsp;&nbsp;├── <span class="file">HEARTBEAT.md</span> <span class="comment">← idle tasks</span><br>
+      &nbsp;&nbsp;├── <span class="file">MEMORY.md</span> <span class="comment">← long-term</span><br>
+      &nbsp;&nbsp;├── <span class="file">USER.md</span> <span class="comment">← user prefs</span><br>
+      &nbsp;&nbsp;├── <span class="dir">memory/</span> <span class="comment">← daily logs</span><br>
+      &nbsp;&nbsp;├── <span class="dir">config/</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">mcporter.json</span><br>
+      &nbsp;&nbsp;├── <span class="dir">skills/</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="symlink">xhs-mcp → ../../workspace/skills/</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="symlink">xhs-operate → ../../workspace/skills/</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">unique-skill/</span> <span class="comment">← bot-only</span><br>
+      &nbsp;&nbsp;└── <span class="dir">publish-queue/</span><br>
+    </div>
+  </div>
+
+  <!-- ========== CRON SCHEDULE ========== -->
+  <div class="section-title">⏰ CRON SCHEDULE</div>
+
+  <div class="pixel-box" style="border-color: #aa44ff; padding: 16px;">
+    <table class="cron-table">
+      <thead>
+        <tr>
+          <th>AGENT</th>
+          <th>JOB</th>
+          <th>SCHEDULE</th>
+          <th>PURPOSE</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#ff8866;">bot_main</td>
+          <td>update-monitor</td>
+          <td><span class="cron-expr">*/30 8-23 * * *</span></td>
+          <td>Status monitoring every 30min (8am-11pm)</td>
+        </tr>
+        <tr>
+          <td style="color:#ff8866;">bot_main</td>
+          <td>daily-security-audit</td>
+          <td><span class="cron-expr">0 12 * * *</span></td>
+          <td>Daily noon security audit</td>
+        </tr>
+        <tr>
+          <td style="color:#ff8866;">security</td>
+          <td>security-heartbeat</td>
+          <td><span class="cron-expr">7 * * * *</span></td>
+          <td>Hourly incident check</td>
+        </tr>
+        <tr>
+          <td style="color:#ff8866;">skills</td>
+          <td>skills-heartbeat</td>
+          <td><span class="cron-expr">0 12,19 * * *</span></td>
+          <td>Skill inventory noon & evening</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ========== SKILL MAP ========== -->
+  <div class="section-title">🧩 SKILL MAP (28 SHARED)</div>
+
+  <div class="pixel-box" style="border-color: #44aa88; padding: 16px;">
+    <div class="flow-row" style="justify-content: flex-start; gap: 6px; flex-wrap: wrap;">
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">xiaohongshu-mcp</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">xhs-operate</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">xhs-content-planner</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">xhs-topic-collector</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">submit-to-publisher</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">compliance-review</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">stock-watcher</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">technical-analyst</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">market-analysis</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">earnings-digest</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">flow-watch</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">news-factcheck</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">research-stock</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">sector-pulse</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">record-insight</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">self-review</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">deepresearch</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">web-fetch-enhanced</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">image-recognition</span>
+      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">report-incident</span>
+      <span class="skill-tag unique" style="font-size:12px; padding: 4px 10px;">bot1: fupan</span>
+      <span class="skill-tag unique" style="font-size:12px; padding: 4px 10px;">bot4: report-*</span>
+      <span class="skill-tag unique" style="font-size:12px; padding: 4px 10px;">bot5: content-planner</span>
+      <span class="skill-tag unique" style="font-size:12px; padding: 4px 10px;">bot7/8: dae-fly-style</span>
+    </div>
+  </div>
+
+  <!-- ========== FOOTER ========== -->
+  <div class="footer">
+    <span class="version">OPENCLAW ARCHITECTURE MAP v1.0</span>
+    Generated 2026-03-14 · File-based state · Symlink skills · Cron-driven events
+  </div>
+
+</div>
+
+</body>
+</html>
