@@ -17,7 +17,6 @@
 **所有小红书操作（发帖、搜索、登录、评论、点赞等）必须通过 mcporter 调用 xiaohongshu-mcp 工具。**
 
 - 禁止用 curl / HTTP 直接请求
-- 禁止用 Docker
 - 禁止用浏览器手动操作（除非研究部明确要求）
 - 具体调用方式见你的 `TOOLS.md` 和 `skills/xiaohongshu-mcp/SKILL.md`
 

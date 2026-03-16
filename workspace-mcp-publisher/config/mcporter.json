@@ -30,16 +30,8 @@
     "xhs-bot10": {
       "url": "http://localhost:18070/mcp"
     },
-    "compliance-bot1":  { "url": "http://localhost:18091/mcp" },
-    "compliance-bot2":  { "url": "http://localhost:18092/mcp" },
-    "compliance-bot3":  { "url": "http://localhost:18093/mcp" },
-    "compliance-bot4":  { "url": "http://localhost:18094/mcp" },
-    "compliance-bot5":  { "url": "http://localhost:18095/mcp" },
-    "compliance-bot6":  { "url": "http://localhost:18096/mcp" },
-    "compliance-bot7":  { "url": "http://localhost:18097/mcp" },
-    "compliance-bot8":  { "url": "http://localhost:18098/mcp" },
-    "compliance-bot9":  { "url": "http://localhost:18099/mcp" },
-    "compliance-bot10": { "url": "http://localhost:18100/mcp" },
-    "compliance-mcp":   { "url": "http://localhost:18090/mcp" }
+    "compliance-mcp": {
+      "url": "http://localhost:18090/mcp"
+    }
   }
 }

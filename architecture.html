@@ -3,145 +3,186 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenClaw Architecture</title>
+<title>天天出版社 - 系统架构</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  :root {
+    --gold: #ffcc00;
+    --green: #00ff88;
+    --blue: #44aaff;
+    --red: #ff6644;
+    --purple: #aa44ff;
+    --teal: #44aa88;
+    --pink: #ff66aa;
+    --bg: #0a0a2e;
+    --bg2: #1a1a4e;
+    --dim: #556677;
+  }
+
   body {
-    background: #0a0a2e;
+    background: var(--bg);
     color: #e0e0e0;
     font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 2;
     overflow-x: hidden;
   }
 
-  /* Scanline effect */
+  /* Scanline */
   body::after {
     content: '';
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background: repeating-linear-gradient(
       transparent, transparent 2px,
-      rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px
+      rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px
     );
     pointer-events: none;
     z-index: 9999;
   }
 
-  /* Pixel border mixin via box-shadow */
   .pixel-box {
-    background: #1a1a4e;
+    background: var(--bg2);
     border: 4px solid;
     image-rendering: pixelated;
     box-shadow:
       4px 4px 0 0 rgba(0,0,0,0.5),
-      inset 2px 2px 0 0 rgba(255,255,255,0.1);
+      inset 2px 2px 0 0 rgba(255,255,255,0.08);
   }
+
+  .cn { font-family: 'Noto Sans SC', sans-serif; }
 
   .container {
-    max-width: 1800px;
+    max-width: 1600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 24px;
   }
 
-  /* Header */
+  /* ====== HEADER ====== */
   .header {
     text-align: center;
-    padding: 30px 20px;
-    margin-bottom: 30px;
-    border-color: #ffcc00;
+    padding: 40px 20px;
+    margin-bottom: 24px;
+    border-color: var(--gold);
     background: linear-gradient(180deg, #1a1a4e 0%, #0d0d3a 100%);
     position: relative;
     overflow: hidden;
   }
 
   .header::before {
-    content: '⚔️';
+    content: '📖';
     position: absolute;
-    left: 20px; top: 50%;
+    left: 30px; top: 50%;
     transform: translateY(-50%);
-    font-size: 40px;
-    animation: float 2s ease-in-out infinite;
+    font-size: 48px;
+    animation: float 2.5s ease-in-out infinite;
   }
 
   .header::after {
-    content: '🐉';
+    content: '🖋️';
     position: absolute;
-    right: 20px; top: 50%;
+    right: 30px; top: 50%;
     transform: translateY(-50%);
-    font-size: 40px;
-    animation: float 2s ease-in-out infinite 0.5s;
+    font-size: 48px;
+    animation: float 2.5s ease-in-out infinite 0.6s;
   }
 
   @keyframes float {
     0%, 100% { transform: translateY(-50%) translateY(0); }
-    50% { transform: translateY(-50%) translateY(-8px); }
+    50% { transform: translateY(-50%) translateY(-10px); }
   }
 
   .header h1 {
-    font-size: 36px;
-    color: #ffcc00;
-    text-shadow: 3px 3px 0 #aa6600, 0 0 20px rgba(255,204,0,0.3);
-    margin-bottom: 8px;
-    letter-spacing: 2px;
+    font-size: 40px;
+    color: var(--gold);
+    text-shadow: 3px 3px 0 #aa6600, 0 0 30px rgba(255,204,0,0.3);
+    margin-bottom: 6px;
+    letter-spacing: 6px;
   }
 
   .header .subtitle {
     color: #88aaff;
-    font-size: 14px;
+    font-size: 13px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+
+  .header .subtitle2 {
+    color: #667799;
+    font-size: 10px;
     letter-spacing: 1px;
   }
 
   .stats-bar {
     display: flex;
     justify-content: center;
-    gap: 30px;
-    margin-top: 15px;
+    gap: 40px;
+    margin-top: 20px;
     flex-wrap: wrap;
   }
 
-  .stat {
-    text-align: center;
-  }
-
+  .stat { text-align: center; }
   .stat-val {
-    font-size: 32px;
-    color: #00ff88;
-    text-shadow: 0 0 10px rgba(0,255,136,0.4);
+    font-size: 30px;
+    color: var(--green);
+    text-shadow: 0 0 12px rgba(0,255,136,0.4);
     display: block;
   }
-
   .stat-label {
-    font-size: 11px;
+    font-size: 10px;
     color: #7799bb;
     margin-top: 4px;
     display: block;
   }
 
-  /* Section headers */
+  /* ====== SECTION ====== */
   .section-title {
-    font-size: 20px;
-    color: #ffcc00;
-    padding: 10px 16px;
-    margin: 25px 0 15px;
-    border-left: 6px solid #ffcc00;
+    font-size: 18px;
+    color: var(--gold);
+    padding: 12px 18px;
+    margin: 28px 0 16px;
+    border-left: 6px solid var(--gold);
     text-shadow: 2px 2px 0 #664400;
   }
 
-  /* ====== CENTRAL COMMAND ====== */
+  /* ====== LEGEND ====== */
+  .legend {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    border-color: #333355;
+    margin-bottom: 20px;
+    justify-content: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #8899aa;
+  }
+  .legend-color {
+    width: 14px; height: 14px;
+    border: 2px solid;
+    flex-shrink: 0;
+  }
+
+  /* ====== INFRA AGENTS ====== */
   .central-cmd {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 12px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
     margin-bottom: 20px;
   }
 
   .infra-agent {
-    padding: 14px;
-    border-color: #ff6644;
+    padding: 18px;
+    border-color: var(--red);
     text-align: center;
     position: relative;
     transition: transform 0.2s;
@@ -154,41 +195,17 @@
       0 0 20px rgba(255,102,68,0.2);
   }
 
-  .infra-agent .emoji {
-    font-size: 42px;
-    display: block;
-    margin-bottom: 6px;
-    filter: drop-shadow(0 0 6px rgba(255,255,255,0.3));
-  }
-
-  .infra-agent .name {
-    font-size: 14px;
-    color: #ff8866;
-    display: block;
-    margin-bottom: 4px;
-  }
-
-  .infra-agent .name-cn {
-    font-size: 18px;
-    color: #ffaa88;
-    display: block;
-    margin-bottom: 6px;
-    font-family: 'Noto Sans SC', sans-serif;
-  }
-
-  .infra-agent .role {
-    font-size: 12px;
-    color: #99aabb;
-    line-height: 1.6;
-  }
-
+  .infra-agent .emoji { font-size: 42px; display: block; margin-bottom: 8px; }
+  .infra-agent .name { font-size: 11px; color: #ff8866; display: block; margin-bottom: 4px; }
+  .infra-agent .name-cn { font-size: 18px; color: #ffaa88; display: block; margin-bottom: 8px; }
+  .infra-agent .role { font-size: 11px; color: #99aabb; line-height: 1.8; }
   .infra-agent .cron-tag {
     display: inline-block;
     background: #332244;
     color: #cc88ff;
-    padding: 2px 6px;
-    margin-top: 6px;
-    font-size: 10px;
+    padding: 3px 8px;
+    margin-top: 8px;
+    font-size: 9px;
     border: 1px solid #553377;
   }
 
@@ -196,13 +213,13 @@
   .bot-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
+    gap: 14px;
     margin-bottom: 20px;
   }
 
   .bot-card {
-    padding: 12px;
-    border-color: #4488ff;
+    padding: 16px;
+    border-color: var(--blue);
     position: relative;
     transition: all 0.2s;
     min-height: 200px;
@@ -216,69 +233,24 @@
       0 0 15px rgba(68,136,255,0.2);
   }
 
-  .bot-card.active { border-color: #00ff88; }
-  .bot-card.inactive { border-color: #555577; opacity: 0.6; }
+  .bot-card.active { border-color: var(--green); }
+  .bot-card.inactive { border-color: #555577; opacity: 0.55; }
 
-  .bot-card .bot-id {
-    font-size: 12px;
-    color: #556688;
-    position: absolute;
-    top: 6px; right: 8px;
-  }
-
-  .bot-card .port {
-    font-size: 10px;
-    color: #445566;
-    position: absolute;
-    bottom: 6px; right: 8px;
-  }
-
-  .bot-card .avatar {
-    font-size: 36px;
-    display: block;
-    margin-bottom: 4px;
-  }
-
-  .bot-card .bot-name {
-    font-size: 14px;
-    color: #66ccff;
-    display: block;
-    margin-bottom: 2px;
-    font-family: 'Noto Sans SC', sans-serif;
-  }
-
-  .bot-card .bot-role {
-    font-size: 12px;
-    color: #889aab;
-    line-height: 1.6;
-    display: block;
-    margin-bottom: 6px;
-  }
-
-  .bot-card .skills-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 3px;
-  }
+  .bot-card .bot-id { font-size: 11px; color: #556688; position: absolute; top: 8px; right: 10px; }
+  .bot-card .port { font-size: 10px; color: #445566; position: absolute; bottom: 8px; right: 10px; }
+  .bot-card .avatar { font-size: 36px; display: block; margin-bottom: 6px; }
+  .bot-card .bot-name { font-size: 15px; color: #66ccff; display: block; margin-bottom: 4px; }
+  .bot-card .bot-role { font-size: 11px; color: #889aab; line-height: 1.7; display: block; margin-bottom: 8px; }
+  .bot-card .skills-list { display: flex; flex-wrap: wrap; gap: 4px; }
 
   .skill-tag {
     display: inline-block;
     padding: 3px 8px;
-    font-size: 10px;
+    font-size: 9px;
     border: 1px solid;
   }
-
-  .skill-tag.shared {
-    color: #88ddaa;
-    border-color: #336644;
-    background: #112211;
-  }
-
-  .skill-tag.unique {
-    color: #ffaa44;
-    border-color: #664422;
-    background: #221100;
-  }
+  .skill-tag.shared { color: #88ddaa; border-color: #336644; background: #112211; }
+  .skill-tag.unique { color: #ffaa44; border-color: #664422; background: #221100; }
 
   .status-dot {
     display: inline-block;
@@ -287,8 +259,7 @@
     margin-right: 4px;
     animation: blink 2s infinite;
   }
-
-  .status-dot.on { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
+  .status-dot.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
   .status-dot.off { background: #555555; animation: none; }
 
   @keyframes blink {
@@ -296,265 +267,129 @@
     50% { opacity: 0.4; }
   }
 
-  /* ====== INFRASTRUCTURE ====== */
-  .infra-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  .infra-box {
-    padding: 14px;
-    border-color: #aa44ff;
-  }
-
-  .infra-box .title {
-    font-size: 14px;
-    color: #cc88ff;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .infra-box .title .icon { font-size: 28px; }
-
-  .infra-box .desc {
-    font-size: 12px;
-    color: #8899aa;
-    margin-bottom: 8px;
-    line-height: 1.6;
-  }
-
-  .infra-box .detail-list {
-    list-style: none;
-    padding: 0;
-  }
-
-  .infra-box .detail-list li {
-    font-size: 11px;
-    color: #7788aa;
-    padding: 2px 0;
-    border-bottom: 1px solid #222244;
-  }
-
-  .infra-box .detail-list li::before {
-    content: '▸ ';
-    color: #aa44ff;
-  }
-
   /* ====== DATA FLOW ====== */
   .flow-diagram {
-    padding: 20px;
-    border-color: #44aaff;
+    padding: 24px;
+    border-color: var(--blue);
     margin-bottom: 20px;
     overflow-x: auto;
   }
-
   .flow-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    margin: 6px 0;
+    gap: 10px;
+    margin: 8px 0;
     flex-wrap: wrap;
   }
-
   .flow-node {
     padding: 10px 18px;
     border: 3px solid;
     text-align: center;
     font-size: 12px;
-    min-width: 120px;
-    position: relative;
+    min-width: 130px;
   }
+  .flow-node.primary { border-color: var(--gold); color: var(--gold); background: #1a1500; }
+  .flow-node.secondary { border-color: var(--blue); color: var(--blue); background: #0a1a2a; }
+  .flow-node.tertiary { border-color: var(--green); color: var(--green); background: #001a0a; }
+  .flow-node.external { border-color: var(--red); color: var(--red); background: #1a0a00; }
+  .flow-node.purple { border-color: var(--purple); color: var(--purple); background: #150a2a; }
+  .flow-arrow { color: var(--dim); font-size: 18px; flex-shrink: 0; }
+  .flow-arrow-down { text-align: center; color: var(--dim); font-size: 16px; letter-spacing: 20px; margin: 4px 0; }
+  .flow-label { font-size: 10px; color: #667799; text-align: center; margin: 2px 0; }
 
-  .flow-node.primary {
-    border-color: #ffcc00;
-    color: #ffcc00;
-    background: #1a1500;
+  /* ====== INFRASTRUCTURE ====== */
+  .infra-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
   }
+  .infra-box { padding: 18px; border-color: var(--purple); }
+  .infra-box .title { font-size: 13px; color: #cc88ff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .infra-box .title .icon { font-size: 28px; }
+  .infra-box .desc { font-size: 11px; color: #8899aa; margin-bottom: 10px; line-height: 1.7; }
+  .infra-box .detail-list { list-style: none; padding: 0; }
+  .infra-box .detail-list li { font-size: 11px; color: #7788aa; padding: 3px 0; border-bottom: 1px solid #222244; }
+  .infra-box .detail-list li::before { content: '▸ '; color: var(--purple); }
 
-  .flow-node.secondary {
-    border-color: #44aaff;
-    color: #44aaff;
-    background: #0a1a2a;
-  }
+  /* ====== MEMORY ====== */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .memory-stack { display: flex; flex-direction: column; gap: 0; margin-bottom: 20px; }
+  .memory-layer { padding: 14px 18px; border: 3px solid; text-align: center; }
+  .memory-layer:nth-child(1) { border-color: var(--gold); background: linear-gradient(90deg, #1a1500, #2a2000, #1a1500); color: var(--gold); }
+  .memory-layer:nth-child(2) { border-color: var(--blue); background: linear-gradient(90deg, #0a1a2a, #102a3a, #0a1a2a); color: var(--blue); }
+  .memory-layer:nth-child(3) { border-color: var(--green); background: linear-gradient(90deg, #001a0a, #002a14, #001a0a); color: var(--green); }
+  .memory-layer:nth-child(4) { border-color: var(--purple); background: linear-gradient(90deg, #150a2a, #1a1040, #150a2a); color: var(--purple); }
+  .memory-layer .layer-name { font-size: 13px; display: block; margin-bottom: 4px; }
+  .memory-layer .layer-desc { font-size: 11px; opacity: 0.7; }
 
-  .flow-node.tertiary {
-    border-color: #00ff88;
-    color: #00ff88;
-    background: #001a0a;
-  }
-
-  .flow-node.external {
-    border-color: #ff6644;
-    color: #ff6644;
-    background: #1a0a00;
-  }
-
-  .flow-arrow {
-    color: #556677;
-    font-size: 18px;
-    flex-shrink: 0;
-  }
-
-  .flow-arrow-down {
-    text-align: center;
-    color: #556677;
-    font-size: 16px;
-    letter-spacing: 20px;
-    margin: 2px 0;
-  }
-
-  /* ====== FILE TREE ====== */
   .file-tree {
-    padding: 16px;
-    border-color: #44aa88;
+    padding: 18px;
+    border-color: var(--teal);
     font-size: 12px;
     line-height: 2;
     overflow-x: auto;
   }
-
   .file-tree .dir { color: #44ddaa; }
   .file-tree .file { color: #88aacc; }
   .file-tree .symlink { color: #cc88ff; font-style: italic; }
   .file-tree .comment { color: #556677; }
 
-  /* ====== MEMORY LAYERS ====== */
-  .memory-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    margin-bottom: 20px;
-  }
+  /* ====== CRON TABLE ====== */
+  .cron-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .cron-table th { background: #222255; color: #cc88ff; padding: 10px; text-align: left; border-bottom: 2px solid var(--purple); }
+  .cron-table td { padding: 8px 10px; border-bottom: 1px solid #222244; color: #8899aa; }
+  .cron-table tr:hover td { background: #1a1a44; }
+  .cron-expr { font-family: 'Courier New', monospace; color: var(--green); background: #002200; padding: 2px 6px; border: 1px solid #005500; }
 
-  .memory-layer {
-    padding: 12px 16px;
+  /* ====== MESSAGING ====== */
+  .msg-flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 0;
+    margin: 10px 0;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .msg-box {
+    padding: 14px 18px;
     border: 3px solid;
     text-align: center;
+    font-size: 12px;
   }
-
-  .memory-layer:nth-child(1) {
-    border-color: #ffcc00;
-    background: linear-gradient(90deg, #1a1500, #2a2000, #1a1500);
-    color: #ffcc00;
-  }
-
-  .memory-layer:nth-child(2) {
-    border-color: #44aaff;
-    background: linear-gradient(90deg, #0a1a2a, #102a3a, #0a1a2a);
-    color: #44aaff;
-  }
-
-  .memory-layer:nth-child(3) {
-    border-color: #00ff88;
-    background: linear-gradient(90deg, #001a0a, #002a14, #001a0a);
-    color: #00ff88;
-  }
-
-  .memory-layer .layer-name {
+  .msg-arrow {
+    padding: 0 12px;
+    text-align: center;
+    color: var(--dim);
     font-size: 14px;
-    display: block;
-    margin-bottom: 4px;
+    line-height: 1.4;
+    white-space: nowrap;
   }
-
-  .memory-layer .layer-desc {
-    font-size: 12px;
-    opacity: 0.7;
-  }
-
-  /* ====== CRON TABLE ====== */
-  .cron-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-
-  .cron-table th {
-    background: #222255;
-    color: #cc88ff;
-    padding: 8px;
-    text-align: left;
-    border-bottom: 2px solid #aa44ff;
-  }
-
-  .cron-table td {
-    padding: 6px 8px;
-    border-bottom: 1px solid #222244;
-    color: #8899aa;
-  }
-
-  .cron-table tr:hover td {
-    background: #1a1a44;
-  }
-
-  .cron-expr {
-    font-family: 'Courier New', monospace;
-    color: #00ff88;
-    background: #002200;
-    padding: 1px 4px;
-    border: 1px solid #005500;
-  }
+  .msg-arrow .label { display: block; font-size: 9px; color: #667799; }
 
   /* ====== FOOTER ====== */
   .footer {
     text-align: center;
-    padding: 20px;
-    font-size: 11px;
+    padding: 24px;
+    font-size: 10px;
     color: #445566;
     border-top: 2px solid #222244;
     margin-top: 30px;
   }
+  .footer .version { color: var(--gold); display: block; margin-bottom: 6px; font-size: 11px; }
 
-  .footer .version {
-    color: #ffcc00;
-    display: block;
-    margin-bottom: 4px;
-  }
-
-  /* ====== LEGEND ====== */
-  .legend {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    padding: 12px 16px;
-    border-color: #333355;
-    margin-bottom: 20px;
-    justify-content: center;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #8899aa;
-  }
-
-  .legend-color {
-    width: 12px; height: 12px;
-    border: 2px solid;
-    flex-shrink: 0;
-  }
-
-  /* 2-col layout */
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  @media (max-width: 1000px) {
+  @media (max-width: 1200px) {
     .bot-grid { grid-template-columns: repeat(3, 1fr); }
     .central-cmd { grid-template-columns: 1fr 1fr; }
     .two-col { grid-template-columns: 1fr; }
   }
-
-  @media (max-width: 700px) {
+  @media (max-width: 800px) {
     .bot-grid { grid-template-columns: repeat(2, 1fr); }
     .infra-grid { grid-template-columns: 1fr; }
+    .central-cmd { grid-template-columns: 1fr !important; }
   }
 </style>
 </head>
@@ -564,24 +399,29 @@
 
   <!-- ========== HEADER ========== -->
   <div class="header pixel-box">
-    <h1>OPENCLAW</h1>
-    <div class="subtitle">Multi-Agent Orchestration System v1.0</div>
+    <h1 class="cn">天天出版社</h1>
+    <div class="subtitle">TIANTIAN PUBLISHING HOUSE</div>
+    <div class="subtitle2">Multi-Agent Content Orchestration System</div>
     <div class="stats-bar">
       <div class="stat">
         <span class="stat-val">10</span>
         <span class="stat-label">CONTENT BOTS</span>
       </div>
       <div class="stat">
-        <span class="stat-val">5</span>
+        <span class="stat-val">3</span>
         <span class="stat-label">INFRA AGENTS</span>
       </div>
       <div class="stat">
-        <span class="stat-val">28</span>
-        <span class="stat-label">SHARED SKILLS</span>
+        <span class="stat-val">28+</span>
+        <span class="stat-label">SKILLS</span>
       </div>
       <div class="stat">
-        <span class="stat-val">11</span>
+        <span class="stat-val">12</span>
         <span class="stat-label">MCP PORTS</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val">7</span>
+        <span class="stat-label">CRON JOBS</span>
       </div>
     </div>
   </div>
@@ -589,84 +429,112 @@
   <!-- ========== LEGEND ========== -->
   <div class="legend pixel-box">
     <div class="legend-item">
-      <div class="legend-color" style="border-color:#00ff88; background:#00ff8833;"></div>
-      ACTIVE BOT
+      <div class="legend-color" style="border-color:var(--green); background:rgba(0,255,136,0.15);"></div>
+      <span class="cn">已激活</span> ACTIVE
     </div>
     <div class="legend-item">
-      <div class="legend-color" style="border-color:#555577; background:#55557733;"></div>
-      UNINITIALIZED
+      <div class="legend-color" style="border-color:#555577; background:rgba(85,85,119,0.15);"></div>
+      <span class="cn">待激活</span> STANDBY
     </div>
     <div class="legend-item">
-      <div class="legend-color" style="border-color:#ff6644; background:#ff664433;"></div>
-      INFRA AGENT
+      <div class="legend-color" style="border-color:var(--red); background:rgba(255,102,68,0.15);"></div>
+      <span class="cn">基础设施</span> INFRA
     </div>
     <div class="legend-item">
-      <span class="skill-tag shared">SHARED</span>
+      <span class="skill-tag shared">SHARED SKILL</span>
     </div>
     <div class="legend-item">
-      <span class="skill-tag unique">UNIQUE</span>
+      <span class="skill-tag unique">UNIQUE SKILL</span>
     </div>
   </div>
+
+  <!-- ========== 研究部 (USER) ========== -->
+  <div class="section-title"><span class="cn">👤 研究部 · THE USER</span></div>
+
+  <div class="pixel-box" style="border-color: var(--gold); padding: 20px; margin-bottom: 20px; text-align: center; background: linear-gradient(180deg, #2a2000 0%, var(--bg2) 100%);">
+    <span style="font-size: 48px; display: block; margin-bottom: 8px;">👤</span>
+    <span style="font-size: 18px; color: var(--gold); display: block; margin-bottom: 4px;" class="cn">研究部</span>
+    <span style="font-size: 12px; color: #ccaa44;" class="cn">出版社最高决策层 · 所有 Agent 的雇主</span>
+    <div style="margin-top: 14px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+      <div style="border: 2px solid #886622; padding: 8px 14px; font-size: 10px; color: #ccaa44;">
+        <span class="cn">💬 飞书指令</span>
+      </div>
+      <div style="border: 2px solid #886622; padding: 8px 14px; font-size: 10px; color: #ccaa44;">
+        <span class="cn">✅ 发布审批</span>
+      </div>
+      <div style="border: 2px solid #886622; padding: 8px 14px; font-size: 10px; color: #ccaa44;">
+        <span class="cn">📝 人设定义</span>
+      </div>
+      <div style="border: 2px solid #886622; padding: 8px 14px; font-size: 10px; color: #ccaa44;">
+        <span class="cn">🔒 SOUL 修改权</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align: center; color: var(--dim); font-size: 14px; margin: -10px 0 10px;">▼ ▼ ▼</div>
 
   <!-- ========== CENTRAL COMMAND ========== -->
-  <div class="section-title">⚙ CENTRAL COMMAND</div>
+  <div class="section-title"><span class="cn">⚙ 中枢机构</span></div>
 
-  <div class="central-cmd">
-    <div class="infra-agent pixel-box" style="grid-column: span 2;">
+  <div class="central-cmd" style="grid-template-columns: 5fr 3fr 3fr;">
+    <!-- bot_main: 大块，含安全部子模块 -->
+    <div class="infra-agent pixel-box" style="padding: 20px;">
       <span class="emoji">👑</span>
       <span class="name">bot_main</span>
-      <span class="name-cn">魏忠贤 · 大内总管</span>
+      <span class="name-cn cn">魏忠贤 · 大内总管</span>
       <span class="role">
-        Central authority. Oversees all 10 bots.<br>
-        Security audits · Status monitoring · Dispatch
+        <span class="cn">全局监控 · 安全审计 · 事件调度 · 飞书通讯</span><br>
+        Port :18060 · Monitor Dashboard
       </span>
-      <span class="cron-tag">*/30 8-23 * * *</span>
-      <span class="cron-tag">0 12 * * *</span>
+      <div style="margin-top: 10px;">
+        <span class="cron-tag">*/30 8-23 MON-FRI</span>
+        <span class="cron-tag">10:00 SAT-SUN</span>
+        <span class="cron-tag">12:00 AUDIT</span>
+      </div>
+      <!-- 安全部：内嵌子卡片 -->
+      <div style="margin-top: 14px; border: 2px dashed #ff6644; padding: 10px; background: rgba(255,102,68,0.05);">
+        <span style="font-size: 24px;">🛡️</span>
+        <span style="font-size: 11px; color: #ff8866; display: block;">security <span class="cn" style="color:#ffaa88;">安全部（直属）</span></span>
+        <span style="font-size: 10px; color: #99aabb;" class="cn">异常检测 · 入侵扫描 · 事件响应</span>
+        <span class="cron-tag" style="margin-top: 6px;">HOURLY</span>
+      </div>
     </div>
-    <div class="infra-agent pixel-box">
-      <span class="emoji">🛡️</span>
-      <span class="name">security</span>
-      <span class="name-cn">安全部</span>
-      <span class="role">
-        Anomaly detection<br>Incident response<br>Hourly heartbeat
-      </span>
-      <span class="cron-tag">7 * * * *</span>
-    </div>
-    <div class="infra-agent pixel-box">
-      <span class="emoji">🧩</span>
-      <span class="name">skills</span>
-      <span class="name-cn">技能部</span>
-      <span class="role">
-        Skill inventory<br>Symlink sync<br>Plugin catalog
-      </span>
-      <span class="cron-tag">0 12,19 * * *</span>
-    </div>
-  </div>
 
-  <div class="central-cmd" style="grid-template-columns: 1fr 1fr;">
+    <!-- 印务局 -->
     <div class="infra-agent pixel-box">
       <span class="emoji">📮</span>
       <span class="name">mcp_publisher</span>
-      <span class="name-cn">印务局</span>
+      <span class="name-cn cn">印务局</span>
       <span class="role">
-        Publishing execution<br>Compliance review<br>Queue management
+        <span class="cn">发布队列<br>合规审查<br>多账号路由</span><br>
+        Port :18090
       </span>
-      <span class="cron-tag">ON-DEMAND</span>
+      <span class="cron-tag">*/15 8-23 QUEUE</span>
     </div>
+
+    <!-- 技能部 -->
     <div class="infra-agent pixel-box">
-      <span class="emoji">📊</span>
-      <span class="name">portfolio-service</span>
-      <span class="name-cn">投资组合</span>
+      <span class="emoji">🧩</span>
+      <span class="name">skills</span>
+      <span class="name-cn cn">技能部</span>
       <span class="role">
-        Financial tracking<br>Daily portfolio refresh<br>MCP plugin
+        <span class="cn">技能清单<br>Symlink 管理<br>状态报告</span>
       </span>
-      <span class="cron-tag">DAILY</span>
+      <span class="cron-tag">12:00 & 19:00</span>
     </div>
   </div>
 
-  <!-- ========== BOT FLEET ========== -->
-  <div class="section-title">🤖 BOT FLEET (10 AGENTS)</div>
+  <!-- ========== 编辑部 ========== -->
+  <div class="section-title"><span class="cn">✍️ 编辑部 · EDITORIAL TEAM</span></div>
 
+  <div class="pixel-box" style="border-color: var(--blue); padding: 14px 18px; margin-bottom: 16px; background: linear-gradient(90deg, #0a1a2a, var(--bg2));">
+    <span style="font-size: 13px; color: var(--blue);" class="cn">
+      出版社的内容生产核心。每位编辑拥有独立人设（SOUL）、记忆（memory/）、小红书账号（XHS MCP）和专属技能。
+      编辑自主创作，经印务局合规审查后发布。研究部可随时通过飞书下达指令或审批内容。
+    </span>
+  </div>
+
+  <!-- Active bots: larger cards, 5 per row -->
   <div class="bot-grid">
     <!-- bot1 -->
     <div class="bot-card pixel-box active">
@@ -674,38 +542,12 @@
       <span class="port">:18061</span>
       <span class="avatar">💰</span>
       <span class="status-dot on"></span>
-      <span class="bot-name">来财妹妹</span>
-      <span class="bot-role">Content creator · Energetic</span>
+      <span class="bot-name cn">来财妹妹</span>
+      <span class="bot-role cn">小红书创作 · 活泼元气</span>
       <div class="skills-list">
         <span class="skill-tag shared">xhs-mcp</span>
-        <span class="skill-tag shared">xhs-operate</span>
+        <span class="skill-tag shared">submit-pub</span>
         <span class="skill-tag unique">fupan</span>
-      </div>
-    </div>
-
-    <!-- bot2 -->
-    <div class="bot-card pixel-box inactive">
-      <span class="bot-id">#02</span>
-      <span class="port">:18062</span>
-      <span class="avatar">🔲</span>
-      <span class="status-dot off"></span>
-      <span class="bot-name">未初始化</span>
-      <span class="bot-role">Standby</span>
-      <div class="skills-list">
-        <span class="skill-tag shared">xhs-mcp</span>
-      </div>
-    </div>
-
-    <!-- bot3 -->
-    <div class="bot-card pixel-box inactive">
-      <span class="bot-id">#03</span>
-      <span class="port">:18063</span>
-      <span class="avatar">🔲</span>
-      <span class="status-dot off"></span>
-      <span class="bot-name">未初始化</span>
-      <span class="bot-role">Standby</span>
-      <div class="skills-list">
-        <span class="skill-tag shared">xhs-mcp</span>
       </div>
     </div>
 
@@ -715,12 +557,12 @@
       <span class="port">:18064</span>
       <span class="avatar">📋</span>
       <span class="status-dot on"></span>
-      <span class="bot-name">研报翻译官</span>
-      <span class="bot-role">Report interpreter · Analyst</span>
+      <span class="bot-name cn">研报翻译官</span>
+      <span class="bot-role cn">研报解读 · 批判思维</span>
       <div class="skills-list">
         <span class="skill-tag shared">xhs-mcp</span>
+        <span class="skill-tag shared">submit-pub</span>
         <span class="skill-tag shared">compliance</span>
-        <span class="skill-tag unique">report-*</span>
       </div>
     </div>
 
@@ -730,44 +572,33 @@
       <span class="port">:18065</span>
       <span class="avatar">🪙</span>
       <span class="status-dot on"></span>
-      <span class="bot-name">宣妈慢慢变富</span>
-      <span class="bot-role">Gold & commodities · Mom life</span>
+      <span class="bot-name cn">宣妈慢慢变富</span>
+      <span class="bot-role cn">黄金投资 · 产品经理 · 二孩麻麻</span>
       <div class="skills-list">
         <span class="skill-tag shared">xhs-mcp</span>
-        <span class="skill-tag shared">compliance</span>
+        <span class="skill-tag shared">submit-pub</span>
         <span class="skill-tag unique">content-planner</span>
-        <span class="skill-tag unique">topic-collector</span>
-      </div>
-    </div>
-
-    <!-- bot6 -->
-    <div class="bot-card pixel-box inactive">
-      <span class="bot-id">#06</span>
-      <span class="port">:18066</span>
-      <span class="avatar">🔲</span>
-      <span class="status-dot off"></span>
-      <span class="bot-name">未初始化</span>
-      <span class="bot-role">Standby</span>
-      <div class="skills-list">
-        <span class="skill-tag shared">xhs-mcp</span>
+        <span class="skill-tag unique">CONTENT_STYLE</span>
       </div>
     </div>
 
     <!-- bot7 -->
-    <div class="bot-card pixel-box active">
+    <div class="bot-card pixel-box active" style="border-width: 5px;">
       <span class="bot-id">#07</span>
       <span class="port">:18067</span>
-      <span class="avatar">📈</span>
+      <span class="avatar">♠️</span>
       <span class="status-dot on"></span>
-      <span class="bot-name">老K投资笔记</span>
-      <span class="bot-role">Research analyst · Data-driven</span>
+      <span class="bot-name cn">老K投资笔记</span>
+      <span class="bot-role cn">行业研究员 · 数据说话 · 犀利直接</span>
       <div class="skills-list">
         <span class="skill-tag shared">xhs-mcp</span>
-        <span class="skill-tag shared">compliance</span>
+        <span class="skill-tag shared">submit-pub</span>
         <span class="skill-tag unique">stock-watcher</span>
         <span class="skill-tag unique">tech-analyst</span>
         <span class="skill-tag unique">earnings</span>
         <span class="skill-tag unique">flow-watch</span>
+        <span class="skill-tag unique">sector-pulse</span>
+        <span class="skill-tag unique">dae-fly</span>
       </div>
     </div>
 
@@ -775,282 +606,441 @@
     <div class="bot-card pixel-box active">
       <span class="bot-id">#08</span>
       <span class="port">:18068</span>
-      <span class="avatar">📊</span>
+      <span class="avatar">📡</span>
       <span class="status-dot on"></span>
-      <span class="bot-name">老k</span>
-      <span class="bot-role">Tech research · Finance</span>
+      <span class="bot-name cn">老k</span>
+      <span class="bot-role cn">科技行业分析 · 数据驱动</span>
       <div class="skills-list">
         <span class="skill-tag shared">xhs-mcp</span>
-        <span class="skill-tag shared">compliance</span>
+        <span class="skill-tag shared">submit-pub</span>
         <span class="skill-tag unique">stock-watcher</span>
         <span class="skill-tag unique">tech-analyst</span>
       </div>
     </div>
+  </div>
 
-    <!-- bot9 -->
-    <div class="bot-card pixel-box inactive">
-      <span class="bot-id">#09</span>
-      <span class="port">:18069</span>
-      <span class="avatar">🔲</span>
+  <!-- Standby bots: compact row -->
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+    <div class="pixel-box" style="border-color: #555577; opacity: 0.5; padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
       <span class="status-dot off"></span>
-      <span class="bot-name">未初始化</span>
-      <span class="bot-role">Standby</span>
-      <div class="skills-list">
-        <span class="skill-tag shared">xhs-mcp</span>
-      </div>
+      <span style="font-size: 11px; color: #667788;">#02 :18062</span>
     </div>
-
-    <!-- bot10 -->
-    <div class="bot-card pixel-box inactive">
-      <span class="bot-id">#10</span>
-      <span class="port">:18070</span>
-      <span class="avatar">🔲</span>
+    <div class="pixel-box" style="border-color: #555577; opacity: 0.5; padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
       <span class="status-dot off"></span>
-      <span class="bot-name">未初始化</span>
-      <span class="bot-role">Standby</span>
-      <div class="skills-list">
-        <span class="skill-tag shared">xhs-mcp</span>
+      <span style="font-size: 11px; color: #667788;">#03 :18063</span>
+    </div>
+    <div class="pixel-box" style="border-color: #555577; opacity: 0.5; padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
+      <span class="status-dot off"></span>
+      <span style="font-size: 11px; color: #667788;">#06 :18066</span>
+    </div>
+    <div class="pixel-box" style="border-color: #555577; opacity: 0.5; padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
+      <span class="status-dot off"></span>
+      <span style="font-size: 11px; color: #667788;">#09 :18069</span>
+    </div>
+    <div class="pixel-box" style="border-color: #555577; opacity: 0.5; padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
+      <span class="status-dot off"></span>
+      <span style="font-size: 11px; color: #667788;">#10 :18070</span>
+    </div>
+    <span style="font-size: 10px; color: #556677; align-self: center; margin-left: 8px;" class="cn">← 5 个待激活席位</span>
+  </div>
+
+  <!-- ========== PUBLISHING PIPELINE ========== -->
+  <div class="section-title"><span class="cn">📤 发布流水线 · PUBLISHING PIPELINE</span></div>
+
+  <div class="flow-diagram pixel-box">
+    <div class="flow-label cn">创作 → 投稿 → 审查 → 发布 → 归档</div>
+    <br>
+    <div class="flow-row">
+      <div class="flow-node secondary"><span class="cn">Bot 写稿</span><br>draft content</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary"><span class="cn">submit-to-publisher</span><br>YAML frontmatter</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node tertiary">publish-queue/<br><span style="font-size:10px;">pending/</span></div>
+    </div>
+    <div class="flow-arrow-down">↓ ↓ ↓</div>
+    <div class="flow-row">
+      <div class="flow-node purple"><span class="cn">send_message()</span><br><span style="font-size:10px;">agent-messaging</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary" style="border-width:4px;"><span class="cn">📮 印务局</span><br>mcp_publisher</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node purple"><span class="cn">合规审查</span><br>compliance :18090</div>
+    </div>
+    <div class="flow-arrow-down">↓ ↓ ↓</div>
+    <div class="flow-row">
+      <div class="flow-node tertiary"><span class="cn">检查登录</span><br>xhs-botN MCP</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node external" style="border-width:4px;"><span class="cn">📕 发布到小红书</span><br>publish_content</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node tertiary">published/<br><span style="font-size:10px;">or failed/</span></div>
+    </div>
+    <div class="flow-arrow-down">↓</div>
+    <div class="flow-row">
+      <div class="flow-node purple"><span class="cn">reply_message()</span><br><span style="font-size:10px;">deliver_to_user</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary"><span class="cn">💬 飞书通知</span><br>Feishu</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node external"><span class="cn">👤 研究部</span></div>
+    </div>
+  </div>
+
+  <!-- Supported post types -->
+  <div class="pixel-box" style="border-color: var(--teal); padding: 16px; margin-bottom: 20px;">
+    <div style="font-size: 13px; color: var(--teal); margin-bottom: 12px;"><span class="cn">支持的发布类型</span></div>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+      <div style="border: 2px solid var(--teal); padding: 12px 10px; text-align: center; font-size: 12px; color: var(--teal);">
+        🖼️ <span class="cn">文字转图</span><br><span style="font-size:10px; opacity:0.7;">text_to_image</span>
+      </div>
+      <div style="border: 2px solid var(--teal); padding: 12px 10px; text-align: center; font-size: 12px; color: var(--teal);">
+        📸 <span class="cn">图文笔记</span><br><span style="font-size:10px; opacity:0.7;">image</span>
+      </div>
+      <div style="border: 2px solid var(--teal); padding: 12px 10px; text-align: center; font-size: 12px; color: var(--teal);">
+        📝 <span class="cn">长文</span><br><span style="font-size:10px; opacity:0.7;">longform</span>
+      </div>
+      <div style="border: 2px solid var(--teal); padding: 12px 10px; text-align: center; font-size: 12px; color: var(--teal);">
+        🎬 <span class="cn">视频</span><br><span style="font-size:10px; opacity:0.7;">video</span>
       </div>
     </div>
   </div>
 
-  <!-- ========== DATA FLOW ========== -->
-  <div class="section-title">⇄ DATA FLOW</div>
+  <!-- ========== INTER-AGENT MESSAGING ========== -->
+  <div class="section-title"><span class="cn">💬 消息总线 · AGENT MESSAGE BUS</span></div>
 
-  <div class="flow-diagram pixel-box">
-    <div class="flow-row">
-      <div class="flow-node external">研究部 (User)</div>
+  <div class="pixel-box" style="border-color: var(--purple); padding: 20px; margin-bottom: 20px;">
+    <div class="msg-flow">
+      <div class="msg-box" style="border-color: var(--blue); color: var(--blue); background: #0a1a2a;">
+        <span class="cn">Bot N</span><br>sender
+      </div>
+      <div class="msg-arrow">
+        →<br><span class="label">send_message()</span>
+      </div>
+      <div class="msg-box" style="border-color: var(--purple); color: var(--purple); background: #150a2a;">
+        <span class="cn">消息总线</span><br>agent-messaging
+      </div>
+      <div class="msg-arrow">
+        →<br><span class="label">dispatch</span>
+      </div>
+      <div class="msg-box" style="border-color: var(--red); color: var(--red); background: #1a0a00;">
+        <span class="cn">目标 Agent</span><br>receiver
+      </div>
+      <div class="msg-arrow">
+        →<br><span class="label">reply_message()</span>
+      </div>
+      <div class="msg-box" style="border-color: var(--gold); color: var(--gold); background: #1a1500;">
+        <span class="cn">飞书用户</span><br>Feishu
+      </div>
     </div>
-    <div class="flow-arrow-down">↓ ↓ ↓</div>
-    <div class="flow-row">
-      <div class="flow-node primary">飞书 Feishu</div>
-      <span class="flow-arrow">⇄</span>
-      <div class="flow-node primary">bot_main 魏忠贤</div>
-      <span class="flow-arrow">⇄</span>
-      <div class="flow-node secondary">Cron Scheduler</div>
+    <div style="margin-top: 12px; text-align: center;">
+      <span style="font-size: 10px; color: #667799;" class="cn">
+        trace 携带: agent / session_id / reply_channel / reply_to / reply_account
+      </span>
     </div>
-    <div class="flow-arrow-down">↓ ↓ ↓</div>
-    <div class="flow-row">
-      <div class="flow-node secondary">bot1</div>
-      <div class="flow-node secondary">bot4</div>
-      <div class="flow-node secondary">bot5</div>
-      <div class="flow-node secondary">bot7</div>
-      <div class="flow-node secondary">bot8</div>
+  </div>
+
+  <!-- ========== EXTENSION SYSTEM ========== -->
+  <div class="section-title"><span class="cn">🧱 插件系统 · EXTENSIONS (32)</span></div>
+
+  <div class="pixel-box" style="border-color: var(--pink); padding: 18px; margin-bottom: 16px; background: linear-gradient(90deg, #2a0a1a, var(--bg2));">
+    <span style="font-size: 13px; color: var(--pink);" class="cn">
+      OpenClaw 基于插件架构运行。每个插件是独立 TypeScript 模块，提供通讯渠道、认证、记忆、工具等能力。
+      插件通过 runtime 注册，由平台统一调度。飞书插件是当前唯一激活的通讯渠道。
+    </span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;">
+    <!-- 通讯渠道 -->
+    <div class="pixel-box" style="border-color: var(--pink); padding: 16px;">
+      <div style="font-size: 13px; color: var(--pink); margin-bottom: 10px;">💬 <span class="cn">通讯渠道</span> <span style="font-size:10px; opacity:0.6;">16 plugins</span></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+        <span class="skill-tag" style="color:#ff66aa; border-color:#993366; background:#220011; font-weight: bold;">feishu ★</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">discord</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">slack</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">telegram</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">whatsapp</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">signal</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">matrix</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">msteams</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">googlechat</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">line</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">twitch</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">nostr</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">tlon</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">zalo</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">mattermost</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">nextcloud</span>
+      </div>
+      <div style="margin-top: 8px; font-size: 9px; color: #667;">★ = <span class="cn">当前激活</span></div>
     </div>
-    <div class="flow-arrow-down">↓ ↓ ↓</div>
-    <div class="flow-row">
-      <div class="flow-node tertiary">publish-queue/</div>
-      <span class="flow-arrow">→</span>
-      <div class="flow-node primary">mcp_publisher 印务局</div>
-      <span class="flow-arrow">→</span>
-      <div class="flow-node tertiary">compliance-mcp</div>
+
+    <!-- 核心能力 -->
+    <div class="pixel-box" style="border-color: var(--pink); padding: 16px;">
+      <div style="font-size: 13px; color: var(--pink); margin-bottom: 10px;">⚡ <span class="cn">核心能力</span> <span style="font-size:10px; opacity:0.6;">6 plugins</span></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+        <span class="skill-tag" style="color:#ff66aa; border-color:#993366; background:#220011; font-weight: bold;">agent-messaging ★</span>
+        <span class="skill-tag" style="color:#ff66aa; border-color:#993366; background:#220011; font-weight: bold;">memory-core ★</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">memory-lancedb</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">voice-call</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">llm-task</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">open-prose</span>
+      </div>
+      <div style="margin-top: 10px; font-size: 10px; color: #7788aa;" class="cn">
+        agent-messaging: Agent 间通讯总线<br>
+        memory-core: 记忆读写引擎
+      </div>
     </div>
-    <div class="flow-arrow-down">↓</div>
-    <div class="flow-row">
-      <div class="flow-node external">小红书 Xiaohongshu</div>
+
+    <!-- 认证 & 工具 -->
+    <div class="pixel-box" style="border-color: var(--pink); padding: 16px;">
+      <div style="font-size: 13px; color: var(--pink); margin-bottom: 10px;">🔑 <span class="cn">认证 & 工具</span> <span style="font-size:10px; opacity:0.6;">10 plugins</span></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">google-auth</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">gemini-auth</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">minimax-auth</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">qwen-auth</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">copilot-proxy</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">diagnostics-otel</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">lobster</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">imessage</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">bluebubbles</span>
+        <span class="skill-tag" style="color:#886688; border-color:#443344; background:#110011;">zalouser</span>
+      </div>
+      <div style="margin-top: 10px; font-size: 10px; color: #7788aa;" class="cn">
+        多模型认证网关 · 可观测性 · 辅助工具
+      </div>
     </div>
   </div>
 
   <!-- ========== INFRASTRUCTURE ========== -->
-  <div class="section-title">🔧 INFRASTRUCTURE</div>
+  <div class="section-title"><span class="cn">🔧 基础设施 · INFRASTRUCTURE</span></div>
 
   <div class="infra-grid">
-    <!-- MCP Servers -->
     <div class="infra-box pixel-box">
-      <div class="title"><span class="icon">🔌</span> MCP SERVERS</div>
-      <div class="desc">Each bot runs isolated xiaohongshu-mcp on dedicated port</div>
+      <div class="title"><span class="icon">🔌</span> <span class="cn">XHS MCP 服务</span></div>
+      <div class="desc cn">每个 Bot 独立 MCP 进程 + Chrome Profile</div>
       <ul class="detail-list">
         <li>Go + Rod headless browser</li>
-        <li>Chrome profiles: ~/.xhs-profiles/botN/</li>
+        <li class="cn">Chrome 配置: ~/.xhs-profiles/botN/</li>
         <li>SSE stateful sessions</li>
-        <li>Source: ~/MCP/xiaohongshu-mcp/</li>
-        <li>Port range: 18060-18070</li>
+        <li class="cn">源码: ~/MCP/xiaohongshu-mcp/</li>
+        <li class="cn">端口: 18060-18070 + 18090</li>
+        <li class="cn">数据源: window.__INITIAL_STATE__</li>
       </ul>
     </div>
 
-    <!-- Session System -->
     <div class="infra-box pixel-box">
-      <div class="title"><span class="icon">💾</span> SESSION SYSTEM</div>
-      <div class="desc">File-based conversation persistence</div>
+      <div class="title"><span class="icon">💬</span> <span class="cn">飞书集成</span></div>
+      <div class="desc cn">主要通讯骨干 · 用户交互入口</div>
+      <ul class="detail-list">
+        <li class="cn">消息去重: feishu/dedup/botN.json</li>
+        <li class="cn">每 bot 独立去重追踪</li>
+        <li class="cn">Chat ID / User ID 路由</li>
+        <li class="cn">bot_main 为群聊发言人</li>
+        <li class="cn">reply_channel 回传机制</li>
+      </ul>
+    </div>
+
+    <div class="infra-box pixel-box">
+      <div class="title"><span class="icon">⏰</span> <span class="cn">定时调度</span></div>
+      <div class="desc cn">Cron 驱动的事件循环</div>
+      <ul class="detail-list">
+        <li>cron/jobs.json</li>
+        <li class="cn">cron/runs/ 执行日志</li>
+        <li>Asia/Shanghai timezone</li>
+        <li class="cn">agentTurn 分发模型</li>
+        <li class="cn">独立会话 or 主会话</li>
+      </ul>
+    </div>
+
+    <div class="infra-box pixel-box">
+      <div class="title"><span class="icon">💾</span> <span class="cn">会话系统</span></div>
+      <div class="desc cn">文件级会话持久化</div>
       <ul class="detail-list">
         <li>agents/botN/sessions/*.jsonl</li>
-        <li>UUID-based session IDs</li>
-        <li>Delivery context tracking</li>
-        <li>Auto-reset on errors</li>
-        <li>Auth profiles per bot</li>
+        <li class="cn">UUID 会话 ID</li>
+        <li class="cn">sessions.json 索引</li>
+        <li class="cn">错误自动重置</li>
+        <li class="cn">auth-profiles.json 鉴权</li>
       </ul>
     </div>
 
-    <!-- Cron System -->
     <div class="infra-box pixel-box">
-      <div class="title"><span class="icon">⏰</span> CRON SYSTEM</div>
-      <div class="desc">Scheduled job dispatcher</div>
+      <div class="title"><span class="icon">🤖</span> <span class="cn">模型提供方</span></div>
+      <div class="desc cn">多供应商切换 · 按需选型</div>
       <ul class="detail-list">
-        <li>cron/jobs.json definitions</li>
-        <li>cron/runs/ execution logs</li>
-        <li>Asia/Shanghai timezone</li>
-        <li>agentTurn dispatch model</li>
-        <li>Isolated or main session target</li>
+        <li>Kimi-coding (reasoning)</li>
+        <li>Bailian: Qwen3.5/3-max</li>
+        <li>ZAI: Qwen3 + reasoning</li>
+        <li>Legacylands: Claude family</li>
+        <li class="cn">每 bot 独立 models.json</li>
       </ul>
     </div>
 
-    <!-- Feishu Integration -->
     <div class="infra-box pixel-box">
-      <div class="title"><span class="icon">💬</span> FEISHU MESSAGING</div>
-      <div class="desc">Primary communication backbone</div>
+      <div class="title"><span class="icon">🔐</span> <span class="cn">安全体系</span></div>
+      <div class="desc cn">多层防御 · 主动审计</div>
       <ul class="detail-list">
-        <li>Message dedup: feishu/dedup/</li>
-        <li>Per-agent message tracking</li>
-        <li>Chat ID based routing</li>
-        <li>bot_main as spokesperson</li>
-      </ul>
-    </div>
-
-    <!-- Publish Pipeline -->
-    <div class="infra-box pixel-box">
-      <div class="title"><span class="icon">📤</span> PUBLISH PIPELINE</div>
-      <div class="desc">4-stage content publishing queue</div>
-      <ul class="detail-list">
-        <li>pending/ → publishing/</li>
-        <li>→ published/ or failed/</li>
-        <li>Per-bot queues available</li>
-        <li>JSON metadata per entry</li>
-        <li>Compliance gate before publish</li>
-      </ul>
-    </div>
-
-    <!-- Identity & Auth -->
-    <div class="infra-box pixel-box">
-      <div class="title"><span class="icon">🔐</span> IDENTITY & AUTH</div>
-      <div class="desc">Device & bot-level auth system</div>
-      <ul class="detail-list">
-        <li>identity/device-auth.json</li>
-        <li>Per-bot API credentials</li>
-        <li>Kimi, Legacylands integrations</li>
-        <li>Usage stats tracking</li>
+        <li class="cn">每日安全扫描 (security agent)</li>
+        <li class="cn">Skill 注入检测</li>
+        <li class="cn">incidents.jsonl 异常追踪</li>
+        <li class="cn">发布合规门禁 :18090</li>
+        <li class="cn">Bot 不可改 SOUL.md</li>
       </ul>
     </div>
   </div>
 
-  <!-- ========== MEMORY & WORKSPACE ========== -->
-  <div class="section-title">🧠 MEMORY ARCHITECTURE</div>
+  <!-- ========== MEMORY ARCHITECTURE ========== -->
+  <div class="section-title"><span class="cn">🧠 记忆架构 · MEMORY LAYERS</span></div>
 
   <div class="two-col">
     <div>
       <div class="memory-stack">
         <div class="memory-layer">
-          <span class="layer-name">SOUL.md + IDENTITY.md</span>
-          <span class="layer-desc">Core values · Persona · Boundaries (immutable by bot)</span>
+          <span class="layer-name cn">SOUL.md + IDENTITY.md</span>
+          <span class="layer-desc cn">核心人格 · 价值观 · 安全边界（Bot 不可修改）</span>
         </div>
         <div class="memory-layer">
-          <span class="layer-name">MEMORY.md</span>
-          <span class="layer-desc">Long-term curated knowledge · Patterns · Lessons</span>
+          <span class="layer-name cn">AGENTS.md + TOOLS.md + USER.md</span>
+          <span class="layer-desc cn">工作流程 · 工具配置 · 研究部需求</span>
         </div>
         <div class="memory-layer">
-          <span class="layer-name">memory/YYYY-MM-DD.md</span>
-          <span class="layer-desc">Daily journals · Raw records · Interaction logs</span>
+          <span class="layer-name cn">MEMORY.md</span>
+          <span class="layer-desc cn">长期精华 · 模式识别 · 踩坑教训</span>
+        </div>
+        <div class="memory-layer">
+          <span class="layer-name cn">memory/YYYY-MM-DD.md</span>
+          <span class="layer-desc cn">每日日记 · 发帖记录 · 写稿经验 · 预测追踪</span>
         </div>
       </div>
     </div>
 
     <div class="file-tree pixel-box">
-      <span class="dir">workspace-botN/</span><br>
-      &nbsp;&nbsp;├── <span class="file">IDENTITY.md</span> <span class="comment">← who am i</span><br>
-      &nbsp;&nbsp;├── <span class="file">SOUL.md</span> <span class="comment">← core values</span><br>
-      &nbsp;&nbsp;├── <span class="file">AGENTS.md</span> <span class="comment">← workflows</span><br>
-      &nbsp;&nbsp;├── <span class="file">TOOLS.md</span> <span class="comment">← mcp config</span><br>
-      &nbsp;&nbsp;├── <span class="file">HEARTBEAT.md</span> <span class="comment">← idle tasks</span><br>
-      &nbsp;&nbsp;├── <span class="file">MEMORY.md</span> <span class="comment">← long-term</span><br>
-      &nbsp;&nbsp;├── <span class="file">USER.md</span> <span class="comment">← user prefs</span><br>
-      &nbsp;&nbsp;├── <span class="dir">memory/</span> <span class="comment">← daily logs</span><br>
-      &nbsp;&nbsp;├── <span class="dir">config/</span><br>
-      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">mcporter.json</span><br>
-      &nbsp;&nbsp;├── <span class="dir">skills/</span><br>
-      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="symlink">xhs-mcp → ../../workspace/skills/</span><br>
-      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="symlink">xhs-operate → ../../workspace/skills/</span><br>
-      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">unique-skill/</span> <span class="comment">← bot-only</span><br>
-      &nbsp;&nbsp;└── <span class="dir">publish-queue/</span><br>
+      <span class="dir">.openclaw/</span><br>
+      &nbsp;&nbsp;├── <span class="dir">workspace/</span> <span class="comment cn">← 通用模板（所有 bot 基准）</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="dir">skills/</span> <span class="comment cn">← 28+ 共享 skill</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">TOOLS_COMMON.md</span><br>
+      &nbsp;&nbsp;├── <span class="dir">workspace-botN/</span> <span class="comment cn">← Bot 专属空间</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="file">IDENTITY / SOUL / AGENTS</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="dir">skills/</span> <span class="comment cn">← symlink + 独有</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="symlink">xhs-mcp → ../../workspace/skills/</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">unique-skill/</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="dir">memory/</span> <span class="comment cn">← 日记 + 专题</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="dir">config/</span> <span class="comment">mcporter.json</span><br>
+      &nbsp;&nbsp;├── <span class="dir">workspace-main/</span> <span class="comment cn">← 魏忠贤 + monitor/</span><br>
+      &nbsp;&nbsp;├── <span class="dir">workspace-mcp-publisher/</span> <span class="comment cn">← 印务局</span><br>
+      &nbsp;&nbsp;├── <span class="dir">agents/</span> <span class="comment cn">← 会话 + 鉴权</span><br>
+      &nbsp;&nbsp;├── <span class="dir">publish-queue/</span> <span class="comment cn">← 4 阶段队列</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── pending → publishing → published<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── failed/<br>
+      &nbsp;&nbsp;├── <span class="dir">cron/</span> <span class="comment cn">← 定时任务</span><br>
+      &nbsp;&nbsp;├── <span class="dir">feishu/dedup/</span> <span class="comment cn">← 消息去重</span><br>
+      &nbsp;&nbsp;└── <span class="dir">identity/</span> <span class="comment cn">← 设备鉴权</span><br>
     </div>
   </div>
 
   <!-- ========== CRON SCHEDULE ========== -->
-  <div class="section-title">⏰ CRON SCHEDULE</div>
+  <div class="section-title"><span class="cn">⏰ 定时任务 · CRON SCHEDULE</span></div>
 
-  <div class="pixel-box" style="border-color: #aa44ff; padding: 16px;">
+  <div class="pixel-box" style="border-color: var(--purple); padding: 18px;">
     <table class="cron-table">
       <thead>
         <tr>
           <th>AGENT</th>
-          <th>JOB</th>
+          <th class="cn">任务</th>
           <th>SCHEDULE</th>
-          <th>PURPOSE</th>
+          <th class="cn">说明</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td style="color:#ff8866;">bot_main</td>
-          <td>update-monitor</td>
-          <td><span class="cron-expr">*/30 8-23 * * *</span></td>
-          <td>Status monitoring every 30min (8am-11pm)</td>
+          <td>incidents-check</td>
+          <td><span class="cron-expr">7 * * * *</span></td>
+          <td class="cn">每小时检查 ERROR 异常</td>
         </tr>
         <tr>
           <td style="color:#ff8866;">bot_main</td>
           <td>daily-security-audit</td>
           <td><span class="cron-expr">0 12 * * *</span></td>
-          <td>Daily noon security audit</td>
+          <td class="cn">每日午间安全审计</td>
         </tr>
         <tr>
-          <td style="color:#ff8866;">security</td>
-          <td>security-heartbeat</td>
-          <td><span class="cron-expr">7 * * * *</span></td>
-          <td>Hourly incident check</td>
+          <td style="color:#ff8866;">bot_main</td>
+          <td>update-monitor</td>
+          <td><span class="cron-expr">*/30 8-23 * * 1-5</span></td>
+          <td class="cn">工作日每30分钟状态更新</td>
         </tr>
         <tr>
-          <td style="color:#ff8866;">skills</td>
+          <td style="color:#ff8866;">bot_main</td>
+          <td>update-monitor-weekend</td>
+          <td><span class="cron-expr">0 10 * * 0,6</span></td>
+          <td class="cn">周末10点巡检</td>
+        </tr>
+        <tr>
+          <td style="color:#cc88ff;">skills</td>
           <td>skills-heartbeat</td>
           <td><span class="cron-expr">0 12,19 * * *</span></td>
-          <td>Skill inventory noon & evening</td>
+          <td class="cn">技能清单 午间+晚间</td>
+        </tr>
+        <tr>
+          <td style="color:#88ddaa;">mcp_publisher</td>
+          <td>publisher-queue-check</td>
+          <td><span class="cron-expr">3,18,33,48 8-23 * * *</span></td>
+          <td class="cn">每15分钟扫描发布队列</td>
         </tr>
       </tbody>
     </table>
   </div>
 
   <!-- ========== SKILL MAP ========== -->
-  <div class="section-title">🧩 SKILL MAP (28 SHARED)</div>
+  <div class="section-title"><span class="cn">🧩 技能图谱 · SKILL MAP</span></div>
 
-  <div class="pixel-box" style="border-color: #44aa88; padding: 16px;">
-    <div class="flow-row" style="justify-content: flex-start; gap: 6px; flex-wrap: wrap;">
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">xiaohongshu-mcp</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">xhs-operate</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">xhs-content-planner</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">xhs-topic-collector</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">submit-to-publisher</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">compliance-review</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">stock-watcher</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">technical-analyst</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">market-analysis</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">earnings-digest</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">flow-watch</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">news-factcheck</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">research-stock</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">sector-pulse</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">record-insight</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">self-review</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">deepresearch</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">web-fetch-enhanced</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">image-recognition</span>
-      <span class="skill-tag shared" style="font-size:12px; padding: 4px 10px;">report-incident</span>
-      <span class="skill-tag unique" style="font-size:12px; padding: 4px 10px;">bot1: fupan</span>
-      <span class="skill-tag unique" style="font-size:12px; padding: 4px 10px;">bot4: report-*</span>
-      <span class="skill-tag unique" style="font-size:12px; padding: 4px 10px;">bot5: content-planner</span>
-      <span class="skill-tag unique" style="font-size:12px; padding: 4px 10px;">bot7/8: dae-fly-style</span>
+  <div class="two-col">
+    <div class="pixel-box" style="border-color: var(--teal); padding: 18px;">
+      <div style="font-size: 13px; color: var(--teal); margin-bottom: 12px;" class="cn">通用技能 (symlink 共享)</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+        <span class="skill-tag shared">xiaohongshu-mcp</span>
+        <span class="skill-tag shared">xhs-operate</span>
+        <span class="skill-tag shared">xhs-content-planner</span>
+        <span class="skill-tag shared">xhs-topic-collector</span>
+        <span class="skill-tag shared">submit-to-publisher</span>
+        <span class="skill-tag shared">compliance-review</span>
+        <span class="skill-tag shared">stock-watcher</span>
+        <span class="skill-tag shared">technical-analyst</span>
+        <span class="skill-tag shared">market-analysis</span>
+        <span class="skill-tag shared">earnings-digest</span>
+        <span class="skill-tag shared">flow-watch</span>
+        <span class="skill-tag shared">news-factcheck</span>
+        <span class="skill-tag shared">research-stock</span>
+        <span class="skill-tag shared">sector-pulse</span>
+        <span class="skill-tag shared">record-insight</span>
+        <span class="skill-tag shared">self-review</span>
+        <span class="skill-tag shared">deepresearch</span>
+        <span class="skill-tag shared">web-fetch-enhanced</span>
+        <span class="skill-tag shared">image-recognition</span>
+        <span class="skill-tag shared">report-incident</span>
+      </div>
+    </div>
+    <div class="pixel-box" style="border-color: #664422; padding: 18px;">
+      <div style="font-size: 13px; color: #ffaa44; margin-bottom: 12px;" class="cn">Bot 独有技能</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+        <span class="skill-tag unique">bot1: fupan</span>
+        <span class="skill-tag unique">bot3: qingningmeng-style</span>
+        <span class="skill-tag unique">bot3: visual-first-content</span>
+        <span class="skill-tag unique">bot5: CONTENT_STYLE</span>
+        <span class="skill-tag unique">bot7: dae-fly-style</span>
+        <span class="skill-tag unique">bot7: 11 finance skills</span>
+        <span class="skill-tag unique">bot8: shared w/ bot7</span>
+      </div>
+      <div style="margin-top: 14px; font-size: 10px; color: #667799;">
+        <span class="cn">改 workspace/skills/ 源文件 → 所有 bot 自动生效</span><br>
+        <span class="cn">独有 skill 仅存于 workspace-botN/skills/</span>
+      </div>
     </div>
   </div>
 
   <!-- ========== FOOTER ========== -->
   <div class="footer">
-    <span class="version">OPENCLAW ARCHITECTURE MAP v1.0</span>
-    Generated 2026-03-14 · File-based state · Symlink skills · Cron-driven events
+    <span class="version cn">天天出版社 · 系统架构图 v2.0</span>
+    <span class="cn">Generated 2026-03-14 · 文件驱动 · Symlink 技能 · Cron 事件循环 · 消息总线通讯</span>
   </div>
 
 </div>

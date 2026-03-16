@@ -68,11 +68,18 @@ sleep 3 && curl -s http://localhost:18067/health
 
 ```
 /home/rooot/.openclaw/publish-queue/
-├── pending/       ← 人设号投稿入口
-├── publishing/    ← 发布中（已锁定）
-├── published/     ← 已完成归档
-└── failed/        ← 失败待处理
+├── pending/
+│   ├── 2026-03-14T14-35-09_bot7_efxrjy/   ← 文件夹格式（新，由提交脚本创建）
+│   │   ├── post.md                          ← YAML frontmatter + 正文
+│   │   ├── 1.jpg                            ← 图片（可选，image 模式）
+│   │   ├── 2.png
+│   │   └── video.mp4                        ← 视频（可选，video 模式）
+│   └── 2026-03-14T10-00-00_bot5_abc123.md   ← 旧格式（向后兼容）
+├── publishing/    ← mv 锁定（文件夹 mv 同样原子）
+└── published/     ← 归档（仅成功的，失败直接删除并回传通知）
 ```
+
+> 提交脚本：`~/.openclaw/scripts/submit-to-publisher.sh`，bot 调用后自动创建文件夹格式的队列条目。
 
 ## 飞书告警
 

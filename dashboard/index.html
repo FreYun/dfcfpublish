@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天天出版社 · 消息看板</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #1a1a2e;
+    --card: #16213e;
+    --border: #0f3460;
+    --accent: #e94560;
+    --green: #00d2d3;
+    --yellow: #feca57;
+    --blue: #54a0ff;
+    --purple: #a29bfe;
+    --orange: #ff9f43;
+    --text: #eee;
+    --dim: #7f8c8d;
+    --pixel: 'Press Start 2P', monospace;
+    --cn: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--pixel);
+    font-size: 14px;
+    line-height: 1.8;
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  .header {
+    text-align: center;
+    padding: 20px 0 16px;
+    border-bottom: 3px dashed var(--border);
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 32px;
+    color: var(--accent);
+    text-shadow: 2px 2px 0 #000, 4px 4px 0 rgba(233,69,96,0.3);
+    margin-bottom: 8px;
+  }
+  .header .subtitle {
+    font-size: 12px;
+    color: var(--dim);
+  }
+  .status-bar {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  .status-bar .dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 4px;
+    animation: pulse 2s infinite;
+  }
+  .dot.green { background: var(--green); }
+  .dot.yellow { background: var(--yellow); }
+  .dot.red { background: var(--accent); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .grid.full { grid-template-columns: 1fr; }
+
+  .card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    padding: 12px;
+    image-rendering: pixelated;
+  }
+  .card-title {
+    font-size: 14px;
+    color: var(--yellow);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .card-title .icon { margin-right: 6px; }
+
+  /* Agent Stats */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .agent-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px;
+    font-size: 11px;
+    position: relative;
+  }
+  .agent-chip .name {
+    font-size: 13px;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+  .agent-chip .name.system { color: var(--purple); }
+  .agent-chip .stat { color: var(--dim); margin: 3px 0; font-family: var(--cn); font-size: 13px; }
+  .agent-chip .stat b { color: var(--text); }
+  .agent-chip .badge {
+    position: absolute;
+    top: 6px; right: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 9px;
+    padding: 3px 6px;
+    border-radius: 2px;
+  }
+
+  /* Publish Queue */
+  .queue-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .queue-col {
+    flex: 1;
+    text-align: center;
+  }
+  .queue-count {
+    font-size: 36px;
+    font-weight: bold;
+    margin: 6px 0;
+  }
+  .queue-count.pending { color: var(--yellow); }
+  .queue-count.publishing { color: var(--orange); }
+  .queue-count.published { color: var(--green); }
+  .queue-count.failed { color: var(--accent); }
+  .queue-label {
+    font-size: 11px;
+    color: var(--dim);
+  }
+  .queue-arrow {
+    font-size: 24px;
+    color: var(--border);
+    padding-top: 16px;
+  }
+
+  /* Message Timeline */
+  .timeline {
+    max-height: 600px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg);
+  }
+  .timeline::-webkit-scrollbar { width: 6px; }
+  .timeline::-webkit-scrollbar-track { background: var(--bg); }
+  .timeline::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .msg {
+    display: grid;
+    grid-template-columns: 100px minmax(100px, auto) 24px minmax(100px, auto) 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 11px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.2s;
+  }
+  .msg:hover { background: rgba(255,255,255,0.03); }
+  .msg.new {
+    animation: flash 1s ease-out;
+  }
+  @keyframes flash {
+    0% { background: rgba(233,69,96,0.3); }
+    100% { background: transparent; }
+  }
+  .msg .time { color: var(--dim); font-size: 9px; }
+  .msg .from { color: var(--green); text-align: right; }
+  .msg .arrow { color: var(--border); text-align: center; }
+  .msg .to { color: var(--blue); }
+  .msg .content {
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    font-family: var(--cn);
+    font-size: 14px;
+  }
+  .msg .type-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 2px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  .type-badge.request { background: var(--blue); color: #fff; }
+  .type-badge.reply { background: var(--green); color: #000; }
+  .type-badge.notify { background: var(--purple); color: #fff; }
+
+  .msg .status-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .status-dot.delivered { background: var(--green); }
+  .status-dot.pending { background: var(--yellow); }
+  .status-dot.failed { background: var(--accent); }
+
+  /* Cron Jobs */
+  .cron-section { margin-bottom: 12px; }
+  .cron-agent-label {
+    font-size: 15px;
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    font-weight: bold;
+  }
+  .cron-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .cron-table th {
+    text-align: left;
+    color: var(--dim);
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--border);
+    font-weight: normal;
+    font-size: 12px;
+  }
+  .cron-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-family: var(--cn);
+  }
+  .cron-table td:first-child { font-family: var(--pixel); font-size: 13px; }
+  .cron-table td.mono { font-family: monospace; font-size: 13px; color: var(--dim); }
+  .cron-status {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+  .cron-status.ok { background: var(--green); }
+  .cron-status.err { background: var(--accent); }
+  .cron-status.skip { background: var(--dim); }
+  .cron-delivery {
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: var(--pixel);
+  }
+  .cron-delivery.announce { background: rgba(84,160,255,0.2); color: var(--blue); }
+  .cron-delivery.none { background: rgba(127,140,141,0.2); color: var(--dim); }
+
+  /* Published Files */
+  .pub-list {
+    font-family: var(--cn);
+    font-size: 14px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .pub-item {
+    padding: 3px 0;
+    color: var(--dim);
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+  }
+  .pub-item .bot-tag {
+    display: inline-block;
+    font-size: 9px;
+    padding: 2px 5px;
+    border-radius: 2px;
+    margin-right: 4px;
+  }
+
+  /* Flow diagram */
+  .flow-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 0;
+    flex-wrap: wrap;
+  }
+  .flow-node {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 14px;
+    font-size: 11px;
+    text-align: center;
+    min-width: 60px;
+    position: relative;
+  }
+  .flow-node .count {
+    font-size: 16px;
+    color: var(--yellow);
+    margin-top: 2px;
+  }
+  .flow-edge {
+    color: var(--border);
+    font-size: 18px;
+  }
+
+  /* Message detail modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 2px solid var(--accent);
+    border-radius: 4px;
+    padding: 20px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    font-size: 12px;
+  }
+  .modal h3 {
+    color: var(--accent);
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .modal .field {
+    margin: 6px 0;
+  }
+  .modal .field-label {
+    color: var(--dim);
+    display: inline-block;
+    width: 100px;
+  }
+  .modal .field-value {
+    color: var(--text);
+    word-break: break-all;
+  }
+  .modal .content-block {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    padding: 8px;
+    margin-top: 8px;
+    border-radius: 3px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: var(--cn);
+    font-size: 15px;
+    line-height: 2;
+  }
+  .modal .close-btn {
+    float: right;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    font-family: var(--pixel);
+    font-size: 10px;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .modal .trace-chain {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .trace-node {
+    background: rgba(162,155,254,0.2);
+    border: 1px solid var(--purple);
+    padding: 4px 8px;
+    border-radius: 2px;
+    font-size: 9px;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: var(--pixel);
+    font-size: 10px;
+    padding: 6px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .filter-btn.type-request.active { background: var(--blue); border-color: var(--blue); }
+  .filter-btn.type-reply.active { background: var(--green); border-color: var(--green); color: #000; }
+  .filter-btn.type-notify.active { background: var(--purple); border-color: var(--purple); }
+
+  .search-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--pixel);
+    font-size: 10px;
+    padding: 6px 10px;
+    border-radius: 2px;
+    width: 260px;
+  }
+  .search-input::placeholder { color: var(--dim); }
+  .search-input:focus { outline: none; border-color: var(--accent); }
+
+  /* Refresh indicator */
+  .refresh-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    font-size: 11px;
+    color: var(--dim);
+    z-index: 100;
+  }
+  .refresh-indicator.loading { color: var(--yellow); }
+
+  /* Session rows */
+  .sess-header {
+    display: grid;
+    grid-template-columns: 160px 180px 110px 80px 1fr;
+    gap: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--dim);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    z-index: 1;
+  }
+  .sess-row {
+    display: grid;
+    grid-template-columns: 160px 180px 110px 80px 1fr;
+    gap: 10px;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.2s;
+    align-items: center;
+  }
+  .sess-row:hover { background: rgba(255,255,255,0.03); }
+  .source-badge.heartbeat { background: rgba(255,159,67,0.2); color: var(--orange); border: 1px solid var(--orange); }
+  .source-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-family: var(--pixel);
+  }
+  .source-badge.feishu { background: rgba(84,160,255,0.2); color: var(--blue); border: 1px solid var(--blue); }
+  .source-badge.local { background: rgba(0,210,211,0.2); color: var(--green); border: 1px solid var(--green); }
+  .source-badge.cron { background: rgba(254,202,87,0.2); color: var(--yellow); border: 1px solid var(--yellow); }
+  .source-badge.agent { background: rgba(162,155,254,0.2); color: var(--purple); border: 1px solid var(--purple); }
+  .source-badge.unknown { background: rgba(127,140,141,0.2); color: var(--dim); border: 1px solid var(--dim); }
+  .sess-id {
+    font-size: 14px;
+    color: var(--dim);
+    font-family: monospace;
+    cursor: pointer;
+  }
+  .sess-id:hover { color: var(--blue); }
+  a.sess-id { text-decoration: none; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .msg { grid-template-columns: 80px minmax(80px, auto) 20px minmax(80px, auto) 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="refresh-indicator" id="refreshIndicator">
+  <span class="dot green"></span> LIVE
+</div>
+
+<div class="header">
+  <h1>📮 天天出版社</h1>
+  <div class="subtitle">AGENT MESSAGE DASHBOARD</div>
+  <div class="status-bar">
+    <span><span class="dot green" id="redisDot"></span> Redis</span>
+    <span id="msgCount">--- msgs</span>
+    <span id="lastUpdate">---</span>
+  </div>
+</div>
+
+<!-- Row 0: Publish Queue + Recent Published -->
+<div class="grid full">
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+      <span class="card-title" style="margin:0;padding:0;border:none;white-space:nowrap"><span class="icon">📦</span>发布队列</span>
+      <div class="queue-row" id="queueRow" style="flex:1;margin:0"></div>
+    </div>
+    <div class="pub-list" id="pubList" style="border-top:1px dashed var(--border);padding-top:8px"></div>
+  </div>
+</div>
+
+<!-- Row 1: Agent Stats + Message Timeline -->
+<div class="grid">
+  <div class="card">
+    <div class="card-title"><span class="icon">🤖</span>AGENT 通信统计</div>
+    <div class="agent-grid" id="agentGrid"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">💬</span>消息时间线</div>
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">ALL</button>
+      <button class="filter-btn type-request" data-filter="request" onclick="setFilter('request', this)">REQUEST</button>
+      <button class="filter-btn type-reply" data-filter="reply" onclick="setFilter('reply', this)">REPLY</button>
+      <button class="filter-btn type-notify" data-filter="notify" onclick="setFilter('notify', this)">NOTIFY</button>
+      <span style="color:var(--border)">|</span>
+      <input type="text" class="search-input" id="searchInput" placeholder="搜索消息内容..." oninput="applyFilters()">
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</div>
+
+<!-- Row 2: Sessions -->
+<div class="grid full">
+  <div class="card">
+    <div class="card-title"><span class="icon">📋</span>会话管理</div>
+    <div class="filter-bar">
+      <button class="filter-btn active" data-sfilter="all" onclick="setSessionFilter('all', this)">ALL</button>
+      <button class="filter-btn" data-sfilter="feishu" onclick="setSessionFilter('feishu', this)">FEISHU</button>
+      <button class="filter-btn" data-sfilter="local" onclick="setSessionFilter('local', this)">LOCAL</button>
+      <button class="filter-btn" data-sfilter="cron" onclick="setSessionFilter('cron', this)">CRON</button>
+      <button class="filter-btn" data-sfilter="heartbeat" onclick="setSessionFilter('heartbeat', this)">HEARTBEAT</button>
+      <span style="color:var(--border)">|</span>
+      <input type="text" class="search-input" id="sessionSearchInput" placeholder="搜索 agent / session ID..." oninput="renderSessions()">
+    </div>
+    <div class="timeline" id="sessionsTable" style="max-height:500px"></div>
+  </div>
+</div>
+
+<!-- Row 3: Message Flow Diagram -->
+<div class="grid full">
+  <div class="card">
+    <div class="card-title"><span class="icon">🔀</span>消息流向（今日）</div>
+    <div class="flow-container" id="flowDiagram"></div>
+  </div>
+</div>
+
+
+<!-- Row 4: Cron Jobs -->
+<div class="grid full">
+  <div class="card">
+    <div class="card-title"><span class="icon">⏰</span>定时任务</div>
+    <div id="cronContainer"></div>
+  </div>
+</div>
+
+
+<!-- Message Detail Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalContent" onclick="event.stopPropagation()">
+    <button class="close-btn" onclick="document.getElementById('modalOverlay').classList.remove('show')">✕ 关闭</button>
+    <h3>📨 消息详情</h3>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+let currentData = null;
+let currentFilter = "all";
+let currentSessionFilter = "all";
+let knownMessageIds = new Set();
+let firstLoad = true;
+
+const SYSTEM_AGENTS = new Set(["bot_main", "mcp_publisher", "security", "skills"]);
+const BOT_NAMES = {
+  bot1: "来财妹妹", bot2: "bot2", bot3: "bot3",
+  bot4: "阿泽（研报搬运工）", bot5: "宣妈慢慢变富",
+  bot6: "bot6", bot7: "老K投资笔记", bot8: "bot8",
+  bot9: "bot9", bot10: "测试君",
+  bot_main: "魏忠贤（管家）", mcp_publisher: "印务局",
+  security: "安全卫士", skills: "技能中心",
+  main: "main（旧）", coder: "coder"
+};
+const BOT_COLORS = {
+  bot1: "#ff6b6b", bot2: "#ffa07a", bot3: "#98d8c8", bot4: "#f7dc6f",
+  bot5: "#bb8fce", bot6: "#85c1e9", bot7: "#f0b27a", bot8: "#82e0aa",
+  bot9: "#f1948a", bot10: "#aed6f1",
+  bot_main: "#a29bfe", mcp_publisher: "#e94560",
+  security: "#ff9f43", skills: "#00d2d3"
+};
+
+async function fetchData() {
+  const indicator = document.getElementById("refreshIndicator");
+  indicator.className = "refresh-indicator loading";
+  indicator.innerHTML = '<span class="dot yellow"></span> LOADING...';
+
+  try {
+    const resp = await fetch("/api/data");
+    currentData = await resp.json();
+    render();
+    indicator.className = "refresh-indicator";
+    indicator.innerHTML = '<span class="dot green"></span> LIVE';
+    document.getElementById("redisDot").className = "dot green";
+  } catch (e) {
+    indicator.className = "refresh-indicator";
+    indicator.innerHTML = '<span class="dot red"></span> OFFLINE';
+    document.getElementById("redisDot").className = "dot red";
+  }
+}
+
+function render() {
+  if (!currentData) return;
+  renderHeader();
+  renderAgentStats();
+  renderSessions();
+  renderPublishQueue();
+  renderFlowDiagram();
+  renderTimeline();
+  renderCronJobs();
+  renderPublished();
+  firstLoad = false;
+}
+
+function renderHeader() {
+  document.getElementById("msgCount").textContent = `${currentData.messages.length} msgs`;
+  const t = new Date(currentData.timestamp);
+  document.getElementById("lastUpdate").textContent =
+    `${t.getHours().toString().padStart(2,"0")}:${t.getMinutes().toString().padStart(2,"0")}:${t.getSeconds().toString().padStart(2,"0")}`;
+}
+
+function renderAgentStats() {
+  const grid = document.getElementById("agentGrid");
+  const stats = currentData.agentStats;
+  const sessions = currentData.agentSessions;
+
+  const agents = [...new Set([...Object.keys(stats), ...Object.keys(sessions)])]
+    .filter(a => a !== "bot_nonexistent_999")
+    .sort((a, b) => {
+      const order = ["bot_main", "mcp_publisher", "security", "skills"];
+      const ia = order.indexOf(a), ib = order.indexOf(b);
+      const isOrderedA = ia !== -1, isOrderedB = ib !== -1;
+      if (isOrderedA && isOrderedB) return ia - ib;
+      if (isOrderedA) return -1;
+      if (isOrderedB) return 1;
+      // bot1-10: extract number and sort numerically
+      const na = a.match(/^bot(\d+)$/), nb = b.match(/^bot(\d+)$/);
+      if (na && nb) return parseInt(na[1]) - parseInt(nb[1]);
+      if (na) return -1;
+      if (nb) return 1;
+      return a.localeCompare(b);
+    });
+
+  grid.innerHTML = agents.map(agent => {
+    const s = stats[agent] || { inbox: 0, outbox: 0 };
+    const sess = sessions[agent] || {};
+    const isSystem = SYSTEM_AGENTS.has(agent);
+    const color = BOT_COLORS[agent] || "#888";
+    const lastActive = sess.lastActive ? timeAgo(new Date(sess.lastActive)) : "---";
+
+    return `
+      <div class="agent-chip">
+        <div class="name ${isSystem ? 'system' : ''}" style="color:${color}">${agent}</div>
+        ${BOT_NAMES[agent] && BOT_NAMES[agent] !== agent ? `<div style="font-family:var(--cn);font-size:15px;color:#ccc;margin-bottom:3px;font-weight:bold">${BOT_NAMES[agent]}</div>` : ''}
+        <div class="stat">📥 <b>${s.inbox}</b> 收  📤 <b>${s.outbox}</b> 发</div>
+        <div class="stat">🕐 ${lastActive}</div>
+        ${s.inbox > 20 ? `<div class="badge">${s.inbox}</div>` : ''}
+      </div>
+    `;
+  }).join("");
+}
+
+function renderPublishQueue() {
+  const q = currentData.publishQueue;
+  document.getElementById("queueRow").innerHTML = `
+    <div class="queue-col">
+      <div class="queue-label">PENDING</div>
+      <div class="queue-count pending">${q.pending.length}</div>
+    </div>
+    <div class="queue-arrow">→</div>
+    <div class="queue-col">
+      <div class="queue-label">PUBLISHING</div>
+      <div class="queue-count publishing">${q.publishing.length}</div>
+    </div>
+    <div class="queue-arrow">→</div>
+    <div class="queue-col">
+      <div class="queue-label">PUBLISHED</div>
+      <div class="queue-count published">${q.published.length}</div>
+    </div>
+  `;
+}
+
+function renderFlowDiagram() {
+  // Count message flows between agent pairs
+  const flows = {};
+  const today = new Date().toISOString().slice(0, 10);
+  const todayMsgs = currentData.messages.filter(m => m.created_at && m.created_at.startsWith(today));
+
+  for (const msg of todayMsgs) {
+    const key = `${msg.from}→${msg.to}`;
+    flows[key] = (flows[key] || 0) + 1;
+  }
+
+  const sorted = Object.entries(flows).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+  if (sorted.length === 0) {
+    document.getElementById("flowDiagram").innerHTML =
+      '<span style="color:var(--dim);font-size:12px">今日暂无消息</span>';
+    return;
+  }
+
+  document.getElementById("flowDiagram").innerHTML = sorted.map(([key, count]) => {
+    const [from, to] = key.split("→");
+    const fromColor = BOT_COLORS[from] || "#888";
+    const toColor = BOT_COLORS[to] || "#888";
+    return `
+      <div class="flow-node" style="border-color:${fromColor}">
+        <span style="color:${fromColor}">${from}</span>
+      </div>
+      <div class="flow-edge">→<sup style="font-size:10px;color:var(--yellow)">${count}</sup></div>
+      <div class="flow-node" style="border-color:${toColor}">
+        <span style="color:${toColor}">${to}</span>
+      </div>
+      <span style="width:16px"></span>
+    `;
+  }).join("");
+}
+
+function renderTimeline() {
+  const container = document.getElementById("timeline");
+  let msgs = currentData.messages;
+
+  // Apply filters
+  if (currentFilter !== "all") {
+    msgs = msgs.filter(m => m.type === currentFilter);
+  }
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  if (search) {
+    msgs = msgs.filter(m =>
+      (m.content || "").toLowerCase().includes(search) ||
+      (m.from || "").toLowerCase().includes(search) ||
+      (m.to || "").toLowerCase().includes(search)
+    );
+  }
+
+  const newIds = new Set();
+  msgs.forEach(m => newIds.add(m.message_id));
+
+  container.innerHTML = msgs.slice(0, 150).map(msg => {
+    const isNew = !firstLoad && !knownMessageIds.has(msg.message_id);
+    const t = new Date(msg.created_at);
+    const timeStr = `${(t.getMonth()+1).toString().padStart(2,"0")}-${t.getDate().toString().padStart(2,"0")} ${t.getHours().toString().padStart(2,"0")}:${t.getMinutes().toString().padStart(2,"0")}`;
+    const fromColor = BOT_COLORS[msg.from] || "#888";
+    const toColor = BOT_COLORS[msg.to] || "#888";
+    const content = (msg.content || "").replace(/</g, "&lt;").slice(0, 200);
+    const statusClass = msg.status || "pending";
+
+    return `
+      <div class="msg ${isNew ? 'new' : ''}" onclick="showDetail('${msg.message_id}')">
+        <span class="time">${timeStr}</span>
+        <span class="from" style="color:${fromColor}">${msg.from}</span>
+        <span class="arrow">→</span>
+        <span class="to" style="color:${toColor}">${msg.to}</span>
+        <span class="content">
+          <span class="type-badge ${msg.type}">${msg.type}</span>
+          ${content}
+          <span class="status-dot ${statusClass}"></span>
+        </span>
+      </div>
+    `;
+  }).join("");
+
+  knownMessageIds = newIds;
+}
+
+function renderCronJobs() {
+  const container = document.getElementById("cronContainer");
+  const cronData = currentData.cronJobs;
+  const runs = currentData.cronRuns;
+
+  const jobs = Array.isArray(cronData) ? cronData : (cronData?.jobs || []);
+  if (!jobs.length) {
+    container.innerHTML = '<div style="color:var(--dim);padding:12px">无定时任务</div>';
+    return;
+  }
+
+  // Group by agentId
+  const grouped = {};
+  for (const job of jobs) {
+    const agent = job.agentId || "unknown";
+    if (!grouped[agent]) grouped[agent] = [];
+    grouped[agent].push(job);
+  }
+
+  const agentOrder = ["bot_main", "skills", "mcp_publisher"];
+  const sortedAgents = Object.keys(grouped).sort((a, b) => {
+    const ia = agentOrder.indexOf(a), ib = agentOrder.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+
+  container.innerHTML = sortedAgents.map(agent => {
+    const color = BOT_COLORS[agent] || "#888";
+    const agentJobs = grouped[agent];
+
+    const rows = agentJobs.map(job => {
+      const schedule = job.schedule?.expr || "?";
+      const tz = job.schedule?.tz || "";
+      const state = job.state || {};
+      const delivery = job.delivery || {};
+      const enabled = job.enabled !== false;
+
+      // Status
+      const lastStatus = state.lastStatus || state.lastRunStatus;
+      let statusHtml = '<span class="cron-status skip"></span> -';
+      if (lastStatus === "ok") {
+        statusHtml = '<span class="cron-status ok"></span> OK';
+      } else if (lastStatus === "error") {
+        statusHtml = '<span class="cron-status err"></span> ERR';
+      }
+
+      // Last run time
+      let lastRunStr = "-";
+      if (state.lastRunAtMs) {
+        const t = new Date(state.lastRunAtMs);
+        lastRunStr = `${(t.getMonth()+1).toString().padStart(2,"0")}-${t.getDate().toString().padStart(2,"0")} ${t.getHours().toString().padStart(2,"0")}:${t.getMinutes().toString().padStart(2,"0")}`;
+      }
+
+      // Next run
+      let nextRunStr = "-";
+      if (state.nextRunAtMs) {
+        const t = new Date(state.nextRunAtMs);
+        nextRunStr = `${(t.getMonth()+1).toString().padStart(2,"0")}-${t.getDate().toString().padStart(2,"0")} ${t.getHours().toString().padStart(2,"0")}:${t.getMinutes().toString().padStart(2,"0")}`;
+      }
+
+      // Duration
+      let durationStr = "-";
+      if (state.lastDurationMs) {
+        const sec = Math.round(state.lastDurationMs / 1000);
+        durationStr = sec >= 60 ? `${Math.floor(sec/60)}m${sec%60}s` : `${sec}s`;
+      }
+
+      // Delivery
+      const deliveryMode = delivery.mode || "none";
+      const deliveryHtml = `<span class="cron-delivery ${deliveryMode}">${deliveryMode}</span>`;
+
+      // Delivered
+      const deliveredHtml = state.lastDelivered
+        ? '<span class="cron-status ok"></span>'
+        : (deliveryMode === "none" ? '<span style="color:var(--dim)">-</span>' : '<span class="cron-status skip"></span>');
+
+      const nameDisplay = job.name || job.id?.slice(0,8) || "?";
+      const opacity = enabled ? "1" : "0.4";
+
+      return `
+        <tr style="opacity:${opacity}" title="${job.description || ''}${state.lastError ? '\\nError: ' + state.lastError : ''}${state.consecutiveErrors ? '\\n连续错误: ' + state.consecutiveErrors : ''}">
+          <td>${nameDisplay}</td>
+          <td class="mono">${schedule}</td>
+          <td>${statusHtml}</td>
+          <td style="color:var(--dim);font-size:11px">${lastRunStr}</td>
+          <td style="color:var(--dim);font-size:11px">${durationStr}</td>
+          <td>${deliveryHtml}</td>
+          <td>${deliveredHtml}</td>
+          <td style="color:var(--dim);font-size:11px">${nextRunStr}</td>
+        </tr>
+      `;
+    }).join("");
+
+    return `
+      <div class="cron-section">
+        <div class="cron-agent-label" style="color:${color}">${agent}</div>
+        <table class="cron-table">
+          <thead><tr>
+            <th>任务名</th><th>Schedule</th><th>状态</th><th>上次运行</th><th>耗时</th><th>投递</th><th>送达</th><th>下次运行</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderPublished() {
+  const files = currentData.publishQueue.published;
+  const list = document.getElementById("pubList");
+  list.innerHTML = files.slice(0, 30).map(item => {
+    const f = typeof item === "string" ? item : item.name;
+    const title = (item && item.title) || "";
+    const match = f.match(/_(\w+)_/);
+    const bot = match ? match[1] : "?";
+    const color = BOT_COLORS[bot] || "#888";
+    const dateMatch = f.match(/^(\d{4}-\d{2}-\d{2}T\d{2}-\d{2})/);
+    const date = dateMatch ? dateMatch[1].replace("T", " ") : "";
+    return `
+      <div class="pub-item">
+        <span class="bot-tag" style="background:${color}22;color:${color};border:1px solid ${color}">${bot}</span>
+        <span style="color:var(--dim);margin-right:8px">${date}</span>
+        <span style="color:var(--text);font-family:var(--cn)">${title || f.replace(/^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}_\w+_/, "").replace(".md","")}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+// Sessions
+function setSessionFilter(filter, btn) {
+  currentSessionFilter = filter;
+  document.querySelectorAll('[data-sfilter]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSessions();
+}
+
+function renderSessions() {
+  const container = document.getElementById("sessionsTable");
+  if (!currentData || !currentData.allSessions) {
+    container.innerHTML = '<div style="color:var(--dim);padding:12px">无会话数据</div>';
+    return;
+  }
+
+  let sessions = currentData.allSessions;
+
+  // Filter by source
+  if (currentSessionFilter !== "all") {
+    sessions = sessions.filter(s => s.source === currentSessionFilter);
+  }
+
+  // Search filter
+  const search = (document.getElementById("sessionSearchInput")?.value || "").toLowerCase();
+  if (search) {
+    sessions = sessions.filter(s =>
+      s.agent.toLowerCase().includes(search) ||
+      s.sessionId.toLowerCase().includes(search) ||
+      s.key.toLowerCase().includes(search)
+    );
+  }
+
+  let html = `
+    <div class="sess-header">
+      <span>最后活动</span>
+      <span>Agent</span>
+      <span>来源</span>
+      <span>类型</span>
+      <span>Session</span>
+    </div>
+  `;
+
+  html += sessions.slice(0, 100).map(s => {
+    const color = BOT_COLORS[s.agent] || "#888";
+    const t = s.updatedAt ? new Date(s.updatedAt) : null;
+    const timeStr = t
+      ? `${(t.getMonth()+1).toString().padStart(2,"0")}-${t.getDate().toString().padStart(2,"0")} ${t.getHours().toString().padStart(2,"0")}:${t.getMinutes().toString().padStart(2,"0")}`
+      : "---";
+    const ago = t ? timeAgo(t) : "";
+
+    return `
+      <div class="sess-row">
+        <span class="time">${timeStr}<br><span style="color:var(--dim);font-size:11px">${ago}</span></span>
+        <span style="color:${color};font-size:14px;font-weight:bold">${s.agent}</span>
+        <span><span class="source-badge ${s.source}">${s.source}</span></span>
+        <span style="color:var(--dim)">${s.chatType || "-"}</span>
+        <span><a href="http://127.0.0.1:18789/chat?session=${encodeURIComponent(s.key)}" target="_blank" class="sess-id" title="${s.key}">${s.sessionId}</a> <span style="color:var(--dim);font-size:13px;margin-left:8px">${s.key.replace(/^agent:[^:]+:/, '')}</span></span>
+      </div>
+    `;
+  }).join("");
+
+  container.innerHTML = html;
+}
+
+// Filters
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll("[data-filter]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  applyFilters();
+}
+
+function applyFilters() {
+  renderTimeline();
+}
+
+// Modal
+function showDetail(messageId) {
+  const msg = currentData.messages.find(m => m.message_id === messageId);
+  if (!msg) return;
+
+  const fromColor = BOT_COLORS[msg.from] || "#888";
+  const toColor = BOT_COLORS[msg.to] || "#888";
+  const t = new Date(msg.created_at);
+  const timeStr = t.toLocaleString("zh-CN");
+
+  let traceHtml = "";
+  if (msg.trace && msg.trace.length > 0) {
+    traceHtml = `
+      <div class="field">
+        <div class="field-label">Trace:</div>
+        <div class="trace-chain">
+          ${msg.trace.map(t => `
+            <div class="trace-node">
+              ${t.agent}${t.reply_channel ? ` → ${t.reply_channel}` : ""}${t.reply_to ? `:${t.reply_to.slice(0,12)}...` : ""}
+            </div>
+          `).join('<span style="color:var(--border)">→</span>')}
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById("modalBody").innerHTML = `
+    <div class="field">
+      <span class="field-label">ID:</span>
+      <span class="field-value" style="font-size:10px">${msg.message_id}</span>
+    </div>
+    <div class="field">
+      <span class="field-label">From:</span>
+      <span class="field-value" style="color:${fromColor}">${msg.from}</span>
+    </div>
+    <div class="field">
+      <span class="field-label">To:</span>
+      <span class="field-value" style="color:${toColor}">${msg.to}</span>
+    </div>
+    <div class="field">
+      <span class="field-label">Type:</span>
+      <span class="type-badge ${msg.type}" style="font-size:10px">${msg.type}</span>
+    </div>
+    <div class="field">
+      <span class="field-label">Status:</span>
+      <span class="field-value">${msg.status} <span class="status-dot ${msg.status}"></span></span>
+    </div>
+    <div class="field">
+      <span class="field-label">Time:</span>
+      <span class="field-value">${timeStr}</span>
+    </div>
+    ${msg.reply_to_message_id ? `
+    <div class="field">
+      <span class="field-label">Reply To:</span>
+      <span class="field-value" style="font-size:10px;cursor:pointer;text-decoration:underline;color:var(--blue)"
+        onclick="document.getElementById('modalOverlay').classList.remove('show');showDetail('${msg.reply_to_message_id}')"
+      >${msg.reply_to_message_id}</span>
+    </div>` : ""}
+    ${traceHtml}
+    <div class="field">
+      <span class="field-label">Content:</span>
+      <div class="content-block">${(msg.content || "").replace(/</g, "&lt;")}</div>
+    </div>
+  `;
+  document.getElementById("modalOverlay").classList.add("show");
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById("modalOverlay")) {
+    document.getElementById("modalOverlay").classList.remove("show");
+  }
+}
+
+// Keyboard shortcut
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    document.getElementById("modalOverlay").classList.remove("show");
+  }
+});
+
+// Utility
+function timeAgo(date) {
+  const diff = Date.now() - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "刚刚";
+  if (mins < 60) return `${mins}m前`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h前`;
+  const days = Math.floor(hours / 24);
+  return `${days}d前`;
+}
+
+// Auto-refresh
+fetchData();
+setInterval(fetchData, 5000);
+</script>
+</body>
+</html>

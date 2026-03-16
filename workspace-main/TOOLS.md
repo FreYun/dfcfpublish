@@ -55,11 +55,22 @@ openclaw agent --agent bot7 --message "执行 /sector-pulse 半导体"
 | bot5 | 宣妈慢慢变富 | bot5 |
 | bot7 | 老K投资笔记 | bot7 |
 
-## 登录状态检查
+## 小红书相关操作（一律交给印务局）
+
+**魏忠贤不直接操作小红书 MCP。** 每个 bot 有独立的 MCP 端口，直接调 `xiaohongshu-mcp` 会走错端口导致登录串号。
+
+遇到以下情况，**发消息给印务局处理**：
+- 登录状态检查
+- 登录二维码获取
+- 发布问题排查
+- MCP 服务异常
 
 ```bash
-# 检查单个 bot 登录状态
-npx mcporter call "xiaohongshu-mcp.check_login_status(account_id: 'botN')"
+# 让印务局检查 bot5 登录状态
+openclaw agent --agent mcp_publisher --message "检查 bot5 的小红书登录状态，结果回报飞书群"
+
+# 让印务局帮 bot5 取登录二维码
+openclaw agent --agent mcp_publisher --message "bot5 小红书掉线了，取登录二维码发到飞书群 oc_e59188e3ecdb04acd9b33843870a2249"
 ```
 
 ## Gateway 重启

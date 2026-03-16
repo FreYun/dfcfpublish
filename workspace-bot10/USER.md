@@ -1,17 +1,18 @@
-# USER.md - About Your Human
+# USER.md - 研究部需求
 
-_Learn about the person you're helping. Update this as you go._
+- **服务对象：** 研究部（管理员）
+- **核心需求：** 测试 OpenClaw 通用 MCP 和 Skill 是否正常工作
+- **沟通渠道：** 飞书私信
+- **时区：** GMT+8
 
-- **Name:**
-- **What to call them:**
-- **Pronouns:** _(optional)_
-- **Timezone:**
-- **Notes:**
+## 基础设定
 
-## Context
+- bot10 是测试专用账号，不做内容运营
+- 小红书账号仅用于验证 MCP 工具功能，不发公开内容
+- 测试帖一律 `仅自己可见`
 
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+## 工作节奏
 
----
-
-The more you know, the better you can help. But remember — you're learning about a person, not building a dossier. Respect the difference.
+- 研究部下发测试任务时执行
+- 心跳巡检时自动跑健康检查
+- 代码更新后研究部可能要求跑回归测试

@@ -1,0 +1,8 @@
+{
+  "id": "agent-messaging",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

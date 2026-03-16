@@ -19,9 +19,21 @@
 1. **必须用 `npx mcporter call "xiaohongshu-mcp.工具名(account_id: 'botN', ...)"` 调用**
 2. **每次调用必须传 `account_id`**（你的 bot 编号，见你自己的 TOOLS.md）
 3. **禁止用 `curl` / HTTP 直接请求 localhost 端口**
-4. **禁止使用 Docker**（`docker ps`、`docker start`、`docker run` 等一律不准）
-5. **禁止修改 xiaohongshu-mcp 源码**
-6. MCP 服务是直接二进制进程，不是容器
+4. **禁止修改 xiaohongshu-mcp 源码**
+
+---
+
+## ⛔ 系统管理操作 — 绝对禁止
+
+**以下操作只有研究部（魏忠贤 / bot_main）有权执行，所有子 bot 严禁执行：**
+
+1. **禁止 `openclaw gateway restart/stop/start`** — 重启 gateway 影响全部 bot，不是你能碰的
+2. **禁止 `kill`、`pkill`、`killall`** — 任何进程管理命令一律不准
+3. **禁止 `ps aux | xargs kill`** — 不要试图清理进程
+4. **禁止 `systemctl`、`service`** — 不要操作系统服务
+5. **禁止 `rm -rf`、`trash` 系统目录或其他 bot 的文件**
+
+**遇到 browser control service 超时、MCP 连接失败等基础设施问题时：向研究部报告，等待处理。不要自行排查和修复系统进程。**
 
 ### 常用操作速查
 
@@ -81,8 +93,14 @@ npx mcporter call "xiaohongshu-mcp.check_login_status(account_id: 'botN')"
 
 ## 网页浏览
 
-**必须使用 OpenClaw 自带 browser 工具。**
+**必须使用 OpenClaw 自带 browser 工具，且必须传 profile 参数。**
 
+- **每次调用 browser 工具时必须传 `profile: "你的account_id"`**（如 bot7 传 `profile: "bot7"`）。不传 profile 会用默认配置，导致连接超时。
+- **浏览器启动失败时**（报 "Failed to start Chrome CDP" 或 "Can't reach the OpenClaw browser control service"），先执行启动脚本再重试：
+  ```bash
+  bash /home/rooot/.openclaw/scripts/ensure-browser.sh 你的account_id
+  ```
+  脚本会自动检测：已在运行则跳过，未运行则启动。启动成功后再调用 browser 工具即可。
 - 严禁使用 Chrome 插件或任何浏览器扩展
 - 需要登录或 JS 渲染的页面用 browser 工具处理
 - **浏览器用完了必须关 tab（`browser close`）** — 不关会导致 renderer 进程卡死吃 CPU
@@ -116,6 +134,69 @@ A 股量化数据优先用 Tushare 工具：
 
 ---
 
+## Agent 间通信（消息总线）
+
+**所有 agent 间通信必须通过消息总线工具，禁止其他方式。**
+
+### 铁律
+
+1. **唯一通道**：agent 间通信只用 `send_message` / `reply_message` / `forward_message`
+2. **禁止**：`openclaw agent --message`（CLI 直接调用）、`message()` 旧工具、shell 脚本通知、`sessions_send`
+3. **每条消息必须带 trace**：trace 是溯源链，保证多层传递后结果能逐层回传到源头用户
+4. **reply_message 自动路由**：不需要手动判断回传给谁，总线根据 trace 自动决定
+
+### 5 个工具
+
+| 工具 | 用途 | 何时用 |
+|------|------|--------|
+| `send_message` | 发消息给另一个 agent | 发起新对话/请求 |
+| `reply_message` | 回复上一跳 agent（默认）或直投飞书用户（`deliver_to_user: true`） | 任务完成后回传结果 |
+| `forward_message` | 转发到下一个 agent（自动追加 trace） | 需要另一个 agent 协助时 |
+| `get_message` | 查询消息详情 | 需要查看消息内容/trace |
+| `list_messages` | 列出收件箱消息 | 查看历史消息 |
+
+### trace 构造规则
+
+发起新消息时，trace 第一条必须包含你的源头信息：
+
+```
+send_message(
+  to: "目标agent",
+  content: "消息内容",
+  trace: [{
+    agent: "你的account_id",
+    session_id: "当前session_id（如有）",
+    reply_channel: "feishu",           // 有外部用户时填
+    reply_to: "ou_xxx",               // 飞书用户ID（去掉 direct: 前缀）
+    reply_account: "你的account_id"    // 用哪个bot回复飞书
+  }]
+)
+```
+
+- `reply_channel` + `reply_to` + `reply_account`：只在源头（第一跳）填写，表示结果最终要送回给外部用户
+- 中间节点转发时，总线自动追加 trace，不需要手动构造
+
+### ⛔ 收到 `[MSG:xxx]` 前缀消息 — 必须 reply_message
+
+当你被唤醒并收到 `[MSG:xxx]` 前缀的消息时，`xxx` 是 message_id。
+
+**铁律：处理完后必须调用 `reply_message` 回传结果。不回传 = 对方收不到任何回复，消息石沉大海。**
+
+```
+reply_message(message_id: "xxx", content: "你的回复内容")
+```
+
+- 默认回传给上一跳 agent（让它继续处理）
+- 加 `deliver_to_user: true` → 跳过中间 agent，直接发到飞书用户
+
+**不管任务成功还是失败，都必须 reply_message。没有例外。**
+
+### 典型流程：投稿到印务局
+
+详见 `skills/submit-to-publisher/SKILL.md`。
+
+---
+
 ## 工具优先级
 
 1. **memory** → 先检索历史研究，有则增量更新
@@ -123,3 +204,4 @@ A 股量化数据优先用 Tushare 工具：
 3. **browser 工具** → 雪球、东方财富研报（定性分析）
 4. **MCP 搜索** → 补充搜索、验证、海外数据
 5. **xiaohongshu-mcp** → 发帖、管理笔记、互动（通过 mcporter 调用）
+6. **消息总线** → agent 间通信（send_message / reply_message / forward_message）

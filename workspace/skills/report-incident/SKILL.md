@@ -1,11 +1,11 @@
 ---
 name: report-incident
-description: 安全部上报技能 — 当发生运行时异常时，向安全部记录事件。适用于 MCP 超时、登录失败、发帖错误、skill 执行错误等。当你遇到需要上报的异常时调用此 skill。
+description: 异常上报技能 — 当发生运行时异常时，记录事件并通知魏忠贤（bot_main）。适用于 MCP 超时、登录失败、发帖错误、skill 执行错误等。当你遇到需要上报的异常时调用此 skill。
 ---
 
 # 安全异常上报
 
-将异常记录写入安全部文件夹（`/home/rooot/.openclaw/security/incidents.jsonl`），并通过 gateway 实时通知安全部 agent。
+将异常记录写入 `/home/rooot/.openclaw/security/incidents.jsonl`，ERROR 级别通过消息插件通知魏忠贤（bot_main）。
 
 ---
 
@@ -45,7 +45,7 @@ import json, datetime, subprocess, sys
 record = {
     'ts': datetime.datetime.now().astimezone().isoformat(),
     'reporter': '【你的 account_id，如 bot7】',
-    'session_id': '【当前会话 ID，不知道可填 unknown】',
+    'session_id': '【必填！当前会话 ID，从系统上下文中获取】',
     'level': '【ERROR 或 WARNING】',
     'type': '【类型，如 MCP_TIMEOUT】',
     'message': '【一句话描述，≤50字】',
@@ -61,13 +61,19 @@ print('已写入安全日志')
 "
 ```
 
-**第二步：通知安全部 agent（ERROR 级别必须执行）**
+**第二步：通知魏忠贤（ERROR 级别必须执行）**
 
-```bash
-openclaw agent --agent security --message "【上报】reporter=<你的bot_id> type=<类型> level=<ERROR|WARNING> msg=<问题描述≤50字> session=<session_id> ts=<时间>"
+使用系统消息插件：
+
+```
+send_message(
+  to: "bot_main",
+  content: "【异常上报】reporter=<你的bot_id> session=<session_id> type=<类型> level=ERROR msg=<问题描述≤50字>",
+  trace: [{ agent: "<你的bot_id>" }]
+)
 ```
 
-> WARNING 级别可只写文件，不必通知 agent；ERROR 级别必须两步都执行。
+> WARNING 级别可只写文件，不必通知；ERROR 级别必须两步都执行。
 
 ---
 
@@ -92,7 +98,12 @@ with open('/home/rooot/.openclaw/security/incidents.jsonl', 'a') as f:
 print('已写入安全日志')
 "
 
-openclaw agent --agent security --message "【上报】reporter=bot7 type=MCP_TIMEOUT level=ERROR msg=get_feeds端口18067无响应，等待45秒后放弃 session=abc12345"
+# 然后用消息插件通知魏忠贤
+send_message(
+  to: "bot_main",
+  content: "【异常上报】reporter=bot7 type=MCP_TIMEOUT level=ERROR msg=get_feeds端口18067无响应，等待45秒后放弃",
+  trace: [{ agent: "bot7" }]
+)
 ```
 
 ### 示例 2：登录失效（ERROR）
@@ -114,7 +125,12 @@ with open('/home/rooot/.openclaw/security/incidents.jsonl', 'a') as f:
 print('已写入安全日志')
 "
 
-openclaw agent --agent security --message "【上报】reporter=bot5 type=LOGIN_REQUIRED level=ERROR msg=bot5小红书cookie已失效 session=xyz98765"
+# 然后用消息插件通知魏忠贤
+send_message(
+  to: "bot_main",
+  content: "【异常上报】reporter=bot5 type=LOGIN_REQUIRED level=ERROR msg=bot5小红书cookie已失效",
+  trace: [{ agent: "bot5" }]
+)
 ```
 
 ### 示例 3：合规拦截（WARNING，只写文件）
@@ -141,9 +157,9 @@ print('已写入安全日志')
 
 ## 上报后的行为
 
-- **上报完成后继续工作**，不要等待安全部回复
+- **上报完成后继续工作**，不要等待回复
 - ERROR 级别如导致当前任务中断，飞书群简短告知研究部
-- 安全部 agent 会立即收到通知并决定是否升级处理
+- 魏忠贤（bot_main）会收到通知并决定是否升级处理
 
 ---
 

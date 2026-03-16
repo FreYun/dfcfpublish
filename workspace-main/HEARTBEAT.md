@@ -21,21 +21,7 @@
 - **仅在 08:30–23:30 之间执行巡检**
 - 当前时间不在此范围内 → 回复 `HEARTBEAT_OK`
 
-### 检查 3：频率控制
-
-```bash
-cat memory/last-heartbeat.txt 2>/dev/null || echo "0"
-date +%s
-date +%u  # 1=周一 ... 6=周六 7=周日
-```
-
-- 读取 `memory/last-heartbeat.txt` 中的 Unix 时间戳
-- 判断今天是否为周末（`date +%u` 返回 6 或 7）
-- **工作日（周一至周五）**：间隔 < 10800 秒（3小时）→ 回复 `HEARTBEAT_OK`
-- **周末（周六、周日）**：间隔 < 86400 秒（24小时）→ 回复 `HEARTBEAT_OK`
-- 如果文件不存在或内容为 0 → 视为从未播报过，继续执行
-
-**三项检查全部通过后，才进入下面的巡检流程。**
+**两项检查全部通过后，才进入下面的巡检流程。巡检不记录频率，不写 last-heartbeat.txt，频率控制由 cron 负责。**
 
 ---
 
@@ -83,6 +69,32 @@ date +%u  # 1=周一 ... 6=周六 7=周日
 
 ⏰ 检查时间：YYYY-MM-DD HH:MM
 ```
+
+---
+
+## 默认浏览器 profile 检查
+
+每次心跳时检查 `openclaw` 默认 browser profile 的 Chrome 是否在运行。不在运行会导致所有 bot 的 browser 工具超时。
+
+```bash
+bash /home/rooot/.openclaw/scripts/ensure-browser.sh openclaw
+```
+
+- 输出 `OK` → 正常，不播报
+- 输出 `FAIL` → 播报飞书群告警
+
+---
+
+## 异常日志巡检
+
+> 由 cron 每小时触发（`incidents-check`）。
+
+```bash
+python3 ~/.openclaw/workspace-main/scripts/check-incidents.py
+```
+
+- 有输出 → 将输出内容转发到飞书群告警（脚本已自动清空 incidents.jsonl）
+- 无输出 → 静默，无事发生
 
 ---
 

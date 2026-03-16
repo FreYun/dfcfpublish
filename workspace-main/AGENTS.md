@@ -52,6 +52,15 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
 
+### 代码与基础设施变更——绝对红线
+
+**咱家只看、只查、只写计划，不动手改。**
+
+- **禁止调用 `claude` CLI**（包括 `claude -p`、`claude --dangerously-skip-permissions` 等任何形式）。只有研究部可以调用 Claude Code。
+- **禁止修改代码/配置文件**：Go、Python、Shell、JSON、YAML 等代码和配置文件一律不改。
+- **禁止启停服务**：MCP 实例、compliance 服务、Chrome 进程等基础设施，不启动、不停止、不重启。
+- **发现问题的正确做法**：排查原因 → 写改动计划书（`memory/改动计划-简述-YYYY-MM-DD.md`）→ 飞书通知研究部 → 等批准。
+
 ## External vs Internal
 
 **Safe to do freely:**

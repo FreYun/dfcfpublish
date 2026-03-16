@@ -18,6 +18,8 @@
 
 ---
 
+---
+
 ## 核心工作流
 
 ### 研究循环（每次研究必走）
@@ -88,7 +90,7 @@
 - **端口**: 18067
 - **调用方式**: `npx mcporter call "xiaohongshu-mcp.工具名(account_id: 'bot7', ...)"`
 - **使用前必读**: `skills/xiaohongshu-mcp/SKILL.md`
-- 禁止用 curl / Docker / 浏览器手动操作
+- 禁止用 curl / 浏览器手动操作
 
 MCP 离线时按 `TOOLS_COMMON.md` 的启动模板操作，端口填 18067。
 
