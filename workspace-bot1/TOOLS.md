@@ -117,6 +117,17 @@ mem0_search(query: "黄金ETF写过哪些角度", scope: "self")
 
 投顾产品池查询、持仓管理、巡检调仓记录、收益快照追踪。数据存储在本地 SQLite，所有 bot 共用。
 
+### V2 执行态（投顾主链路必读）
+
+| 工具 | 功能 |
+|------|------|
+| `save_system_run` | 记录一轮 cron / 手动执行的 run_id、trade_date、data_version |
+| `save_allocation_run` | 保存 Phase B0 市场状态和大类配置结果 |
+| `get_latest_allocation_run` | 读取最近一次 allocation_runs |
+| `save_portfolio_plan` | 保存 Phase B 目标组合 |
+| `get_latest_portfolio_plan` | 读取最近一次 portfolio_plans |
+| `apply_review_and_rebalance` | **Phase C 首选主入口**，单事务写 review + actions + holdings + cash |
+
 ### 产品查询
 
 | 工具 | 功能 | 示例 |
@@ -138,6 +149,7 @@ mem0_search(query: "黄金ETF写过哪些角度", scope: "self")
 | 工具 | 功能 |
 |------|------|
 | `check_cooldown` | 检查冷静期 |
+| `apply_review_and_rebalance` | **正式执行优先使用**：事务性保存巡检结论、调仓动作和最新持仓 |
 | `save_review` | 保存巡检结论 (KEEP/REBALANCE/SWITCH) |
 | `save_rebalance_actions` | 保存调仓动作明细 |
 | `get_review_history` | 查询巡检历史 |
@@ -146,7 +158,8 @@ mem0_search(query: "黄金ETF写过哪些角度", scope: "self")
 
 | 工具 | 功能 |
 |------|------|
-| `record_daily_snapshot` | 记录当日收益快照（需传入各产品当日收益率） |
+| `record_daily_snapshot` | 记录当日收益快照（**只传 `bot_id` 和 `trade_date`**，系统自行读取持仓和净值计算） |
+| `rerun_snapshot` | 单独重跑某 bot 某交易日的快照，不重复执行调仓 |
 | `get_performance_curve` | 获取收益曲线 |
 
 ### 数据更新

@@ -105,8 +105,65 @@ def get_details():
         })
     return result
 
+BENCHMARKS = {
+    "000001.SH": {"source": "index", "name": "上证指数"},
+    "518880.SH": {"source": "fund",  "name": "黄金ETF"},
+}
+
+def _fetch_ohlc(code, source, start, end):
+    import sys as _sys
+    _sys.path.insert(0, "/home/rooot/MCP/hq")
+    if source == "fund":
+        from finance_data import get_fund_daily
+        return get_fund_daily(ts_code=code, start_date=start, end_date=end)
+    else:
+        from finance_data import get_index_daily
+        return get_index_daily(code, start, end)
+
+def get_benchmarks():
+    conn = sqlite3.connect(DB)
+    conn.row_factory = sqlite3.Row
+    dates = [r["trade_date"] for r in conn.execute(
+        "SELECT DISTINCT trade_date FROM bot_daily_snapshots ORDER BY trade_date"
+    ).fetchall()]
+    conn.close()
+    if not dates:
+        return {}
+
+    start = dates[0].replace("-", "")
+    end = dates[-1].replace("-", "")
+    result = {}
+
+    for code, cfg in BENCHMARKS.items():
+        try:
+            df = _fetch_ohlc(code, cfg["source"], start, end)
+            if df is None or df.empty:
+                result[code] = []
+                continue
+            series = []
+            for _, row in df.iterrows():
+                d = str(row["trade_date"])
+                date_str = f"{d[:4]}-{d[4:6]}-{d[6:8]}"
+                item = {"date": date_str, "close": float(row["close"])}
+                for k in ("open", "high", "low"):
+                    if k in row and row[k] is not None:
+                        item[k] = float(row[k])
+                series.append(item)
+            series.sort(key=lambda x: x["date"])
+            if series:
+                base = series[0]["close"]
+                for r in series:
+                    r["return_pct"] = (r["close"] / base - 1) * 100
+            result[code] = series
+        except Exception as e:
+            result[code] = [{"error": str(e)}]
+
+    return result
+
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--details":
         print(json.dumps(get_details(), ensure_ascii=False))
+    elif len(sys.argv) > 1 and sys.argv[1] == "--benchmarks":
+        print(json.dumps(get_benchmarks(), ensure_ascii=False))
     else:
         print(json.dumps(get_summary(), ensure_ascii=False))

@@ -18,6 +18,7 @@ import sqlite3
 import subprocess
 import sys
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, date, timedelta
 from pathlib import Path
@@ -614,22 +615,27 @@ def phase_a() -> dict:
 # Phase B+C: 各 bot 串行执行选品 + 巡检
 # ═══════════════════════════════════════
 
-BOT_PIPELINE_PROMPT = (
-    "执行 /tougu-portfolio-review（今日定时巡检）。"
-    "产品池数据已在凌晨更新完毕。"
-    "完整流程：重新选品 → 对比持仓 → 决定是否调仓 → 写回数据库 → 记录收益快照。"
-)
+def build_bot_pipeline_prompt(run_id: str, trade_date: str, data_version: str) -> str:
+    return (
+        "执行 /tougu-portfolio-review（今日定时巡检）。"
+        "产品池数据已在凌晨更新完毕。"
+        f"本轮运行参数：run_id={run_id}，trade_date={trade_date}，data_version={data_version}。"
+        "请按最新投顾链路执行：先读取市场状态与大类配置约束，再重新选品，并把 Phase B0 正式写入 allocation_runs、把 Phase B 正式写入 portfolio_plans。"
+        "然后结合当前持仓决定是否调仓，Phase C 优先调用 apply_review_and_rebalance 写库。"
+        "收益快照由 Phase D 单独兜底，不要把快照记录当成 review 主流程。"
+    )
 
 
-def run_bot_pipeline(bot_id: str) -> bool:
+def run_bot_pipeline(bot_id: str, run_id: str, trade_date: str, data_version: str) -> bool:
     """通过 openclaw agent CLI 触发单个 bot 执行投顾全链路，阻塞等待完成"""
     log.info(f"  [{bot_id}] 开始执行全链路 ...")
     t0 = time.time()
+    prompt = build_bot_pipeline_prompt(run_id, trade_date, data_version)
 
     cmd = [
         OPENCLAW_BIN, "agent",
         "--agent", bot_id,
-        "--message", BOT_PIPELINE_PROMPT,
+        "--message", prompt,
         "--thinking", "medium",
         "--timeout", str(BOT_TIMEOUT),
         "--json",
@@ -673,7 +679,7 @@ def run_bot_pipeline(bot_id: str) -> bool:
         return False
 
 
-def phase_bc():
+def phase_bc(run_id: str, trade_date: str, data_version: str):
     """Phase B+C: 各 bot 并行执行选品 + 巡检全链路（最大并发 MAX_PARALLEL_BOTS）"""
     log.info("=" * 60)
     log.info(f"Phase B+C: 各 bot 并行执行投顾全链路（并发={MAX_PARALLEL_BOTS}）")
@@ -687,7 +693,10 @@ def phase_bc():
 
     results = {}
     with ThreadPoolExecutor(max_workers=MAX_PARALLEL_BOTS) as pool:
-        futures = {pool.submit(run_bot_pipeline, bid): bid for bid in bot_ids}
+        futures = {
+            pool.submit(run_bot_pipeline, bid, run_id, trade_date, data_version): bid
+            for bid in bot_ids
+        }
         for future in as_completed(futures):
             bot_id = futures[future]
             try:
@@ -720,7 +729,7 @@ def get_active_bot_ids() -> list[str]:
 
 
 def phase_d():
-    """Phase D: 为有持仓的 bot 记录收益快照"""
+    """Phase D: 为有持仓的 bot 记录收益快照，不参与择时决策"""
     log.info("=" * 60)
     log.info("Phase D: 更新 bot 收益快照")
 
@@ -806,6 +815,10 @@ def main():
     conn_post.close()
     log.info(f"Phase A 后: tougu_nav 最新 nav_date = {nav_date_after}")
 
+    trade_date = nav_date_after or datetime.now().strftime("%Y-%m-%d")
+    run_id = f"cron-{trade_date}-{uuid.uuid4().hex[:8]}"
+    data_version = f"{trade_date}.nav={nav_date_after or 'none'}"
+
     mcp_down = report.get("_mcp_unreachable", False)
 
     # ── 关键 guard：决定是否跑 Phase B+C+D ──
@@ -823,14 +836,41 @@ def main():
     elif snap_date_before and nav_date_after <= snap_date_before:
         skip_reason = f"tougu_nav 最新 ({nav_date_after}) 不晚于已存在快照 ({snap_date_before})，无可生成的新快照"
 
+    mcp_init(TOUGU_MCP_URL)
+    phase_a_status = "failed" if mcp_down else "success"
+    gate_status = "skipped" if skip_reason else "passed"
+    try:
+        save_run_result = mcp_call(
+            TOUGU_MCP_URL,
+            "save_system_run",
+            {
+                "run_id": run_id,
+                "trade_date": trade_date,
+                "data_version": data_version,
+                "phase_a_status": phase_a_status,
+                "gate_status": gate_status,
+                "skip_reason": skip_reason or "",
+            },
+            timeout=30,
+        )
+        if save_run_result.get("success"):
+            log.info(f"system_run 已写入: run_id={run_id}, trade_date={trade_date}, gate={gate_status}")
+        else:
+            log.warning(f"system_run 写入失败: {save_run_result}")
+    except Exception as e:
+        log.warning(f"system_run 写入异常: {e}")
+
     if skip_reason:
         log.warning(f"跳过 Phase B+C+D: {skip_reason}")
         log.info("本次 cron 仅完成 Phase A 数据刷新，各 bot 巡检和快照未执行")
     else:
-        log.info(f"nav_date 从 {nav_date_before} 推进到 {nav_date_after}，继续执行 Phase B+C+D")
-        # Phase B+C: 各 bot 并行执行选品 + 巡检（含调仓写库）
-        phase_bc()
-        # Phase D: 收益快照兜底（portfolio-review 正常时已执行，这里确保不遗漏）
+        log.info(
+            f"nav_date 从 {nav_date_before} 推进到 {nav_date_after}，继续执行 Phase B+C+D "
+            f"(run_id={run_id}, trade_date={trade_date})"
+        )
+        # Phase B+C: 各 bot 并行执行市场约束下的选品 + 巡检（含调仓写库）
+        phase_bc(run_id, trade_date, data_version)
+        # Phase D: 收益快照兜底（独立执行，避免把快照职责混入 review）
         phase_d()
 
     elapsed = time.time() - start

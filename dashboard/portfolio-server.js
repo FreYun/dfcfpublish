@@ -104,6 +104,14 @@ function getPortfolioDetails() {
   }
 }
 
+function getBenchmarks() {
+  try {
+    return execSync(`python3 ${PORTFOLIO_PY} --benchmarks`, { timeout: 15000, encoding: "utf8" }).trim();
+  } catch (e) {
+    return JSON.stringify({ error: e.message });
+  }
+}
+
 // --- HTTP server ---
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
@@ -131,6 +139,14 @@ const server = http.createServer((req, res) => {
   if (url.pathname === "/api/portfolio/details") {
     const data = getPortfolioDetails();
     res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(data);
+    return;
+  }
+
+  // Benchmark data (multi-index)
+  if (url.pathname === "/api/benchmarks") {
+    const data = getBenchmarks();
+    res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "max-age=300" });
     res.end(data);
     return;
   }

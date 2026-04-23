@@ -8,7 +8,18 @@ from datetime import datetime, timedelta
 
 def call_mcp_tool(tool_name, params):
     """调用 MCP 工具"""
-    cmd = f"npx mcporter call 'tougu-portfolio-mcp.{tool_name}' '{json.dumps(params)}'"
+    def _format_value(v):
+        if isinstance(v, str):
+            escaped = v.replace("\\", "\\\\").replace("'", "\\'")
+            return f"'{escaped}'"
+        if isinstance(v, bool):
+            return "true" if v else "false"
+        if v is None:
+            return "null"
+        return str(v)
+
+    kwargs = ", ".join(f"{k}: {_format_value(v)}" for k, v in params.items())
+    cmd = f'npx mcporter call "tougu-portfolio-mcp.{tool_name}({kwargs})"'
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     try:
         return json.loads(result.stdout)

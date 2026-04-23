@@ -770,6 +770,12 @@ const FMT = {
 let avatars = {}, agentMeta = {};
 let G = {}; // global data cache for re-rendering
 
+// Per-bot benchmark config
+const BOT_BENCHMARK = { bot5: '518880.SH', bot12: '518880.SH' };
+const DEFAULT_BENCHMARK = '000001.SH';
+const BENCHMARK_NAMES = { '000001.SH': '上证指数', '518880.SH': '黄金ETF' };
+let benchmarkDataMap = {};
+
 // Per-section date range state
 const sectionRange = { ranking: 'all', details: 'all', compare: 'all' };
 
@@ -960,6 +966,62 @@ function renderSparkline(snapshots, botId, startDate) {
   </svg>`;
 }
 
+// ====== Benchmark helpers ======
+function getBotBenchmarkCode(botId) {
+  return BOT_BENCHMARK[botId] || DEFAULT_BENCHMARK;
+}
+
+function filterBenchmark(botId, startDate) {
+  const code = getBotBenchmarkCode(botId);
+  const src = benchmarkDataMap[code];
+  if (!src || !src.length) return [];
+  const filtered = !startDate ? src : src.filter(s => s.date >= startDate);
+  if (!filtered.length) return [];
+  const baseClose = filtered[0].close;
+  return filtered.map(s => ({
+    ...s,
+    return_pct: ((s.close / baseClose) - 1) * 100,
+  }));
+}
+
+function renderKlineSvg(bmSeries, dateToX, valToY, candleW) {
+  const hasOHLC = bmSeries.every(b => b.open != null && b.high != null && b.low != null);
+  if (!hasOHLC) return null;
+  const upColor = '#ff4d4d', downColor = '#22c55e', flatColor = '#999';
+  let svg = '';
+  for (const b of bmSeries) {
+    const x = dateToX(b.date);
+    if (x == null) continue;
+    const isUp = b.close >= b.open;
+    const color = b.close === b.open ? flatColor : isUp ? upColor : downColor;
+    const bodyTop = valToY(Math.max(b.open, b.close));
+    const bodyBot = valToY(Math.min(b.open, b.close));
+    const bodyH = Math.max(bodyBot - bodyTop, 0.5);
+    const wickTop = valToY(b.high);
+    const wickBot = valToY(b.low);
+    const hw = candleW / 2;
+    svg += `<line x1="${x.toFixed(1)}" y1="${wickTop.toFixed(1)}" x2="${x.toFixed(1)}" y2="${wickBot.toFixed(1)}" stroke="${color}" stroke-width="1" opacity="0.8"/>`;
+    if (isUp) {
+      svg += `<rect x="${(x - hw).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${candleW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="none" stroke="${color}" stroke-width="1" opacity="0.85"/>`;
+    } else {
+      svg += `<rect x="${(x - hw).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${candleW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}" opacity="0.85"/>`;
+    }
+  }
+  return svg;
+}
+
+function renderBmLineSvg(bmSeries, dateToX, valToY, color) {
+  if (bmSeries.length < 2) return '';
+  const pts = bmSeries.map(b => {
+    const x = dateToX(b.date);
+    if (x == null) return null;
+    const y = valToY(b.close);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).filter(Boolean);
+  if (pts.length < 2) return '';
+  return `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" opacity="0.7"/>`;
+}
+
 // ====== Large NAV chart ======
 function renderNavChart(container, snapshots, botId, startDate) {
   const data = filterSnapshots(snapshots, startDate);
@@ -967,18 +1029,38 @@ function renderNavChart(container, snapshots, botId, startDate) {
     container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--dim);font-size:11px;font-family:var(--cn)">净值数据不足</div>';
     return;
   }
-  const W = 340, H = 110, PX = 2, PY = 12;
-  const navs = data.map(s => s.nav);
-  const minN = Math.min(...navs), maxN = Math.max(...navs);
-  const range = maxN - minN || 0.001;
-  const lastNav = navs[navs.length - 1];
-  const ret = data[data.length - 1].return_pct;
+
+  const bmData = filterBenchmark(botId, startDate);
+  const bmCode = getBotBenchmarkCode(botId);
+  const bmName = BENCHMARK_NAMES[bmCode] || bmCode;
+  const hasBm = bmData.length >= 2;
+
+  const W = 340, H = 130, PX = 2, PY = 12;
   const lineColor = getBotColor(botId);
   const gid = 'nav-' + botId;
 
+  const botRets = data.map(s => s.return_pct);
+  let allRets = [...botRets];
+  let bmBaseClose = null;
+  if (hasBm) {
+    bmBaseClose = bmData[0].close;
+    for (const b of bmData) {
+      allRets.push(b.return_pct);
+      if (b.open != null) allRets.push((b.open / bmBaseClose - 1) * 100);
+      if (b.high != null) allRets.push((b.high / bmBaseClose - 1) * 100);
+      if (b.low != null) allRets.push((b.low / bmBaseClose - 1) * 100);
+    }
+  }
+  const minRet = Math.min(...allRets);
+  const maxRet = Math.max(...allRets);
+  const retRange = maxRet - minRet || 0.01;
+  const retToY = v => PY + (1 - (v - minRet) / retRange) * (H - 2 * PY);
+
+  const dateMap = {};
   const points = data.map((s, i) => {
     const x = PX + (i / (data.length - 1)) * (W - 2 * PX);
-    const y = PY + (1 - (s.nav - minN) / range) * (H - 2 * PY);
+    const y = retToY(s.return_pct);
+    dateMap[s.date] = x;
     return { x, y };
   });
 
@@ -986,24 +1068,49 @@ function renderNavChart(container, snapshots, botId, startDate) {
   const areaPath = `M${points[0].x.toFixed(1)},${points[0].y.toFixed(1)} ` +
     points.map(p => `L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') +
     ` L${points[points.length-1].x.toFixed(1)},${H} L${points[0].x.toFixed(1)},${H} Z`;
-
   const dots = points.map(p =>
     `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${lineColor}" opacity="0.8"/>`
   ).join('');
 
-  const baseNav = data[0].nav;
-  const baseY = PY + (1 - (baseNav - minN) / range) * (H - 2 * PY);
-  const baseLine = (baseY > PY && baseY < H - PY)
-    ? `<line x1="${PX}" y1="${baseY.toFixed(1)}" x2="${W - PX}" y2="${baseY.toFixed(1)}" stroke="var(--dim)" stroke-width="0.5" stroke-dasharray="3,3" opacity="0.4"/>`
+  const zeroY = retToY(0);
+  const baseLine = (zeroY > PY && zeroY < H - PY)
+    ? `<line x1="${PX}" y1="${zeroY.toFixed(1)}" x2="${W - PX}" y2="${zeroY.toFixed(1)}" stroke="var(--dim)" stroke-width="0.5" stroke-dasharray="3,3" opacity="0.4"/>`
     : '';
 
-  const navCls = FMT.cls(ret);
+  let bmSvg = '', bmAxisLabels = '', bmLabelHtml = '';
+  if (hasBm) {
+    const dateToX = date => dateMap[date] ?? null;
+    const valToY = v => retToY((v / bmBaseClose - 1) * 100);
+    const candleW = Math.max(3, Math.min(10, (W - 2 * PX) / data.length * 0.6));
+    const kline = renderKlineSvg(bmData, dateToX, valToY, candleW);
+    bmSvg = kline || renderBmLineSvg(bmData, dateToX, valToY, lineColor);
+
+    const bmHighVal = Math.max(...bmData.map(b => b.high || b.close));
+    const bmLowVal = Math.min(...bmData.map(b => b.low || b.close));
+    for (const val of [bmHighVal, bmLowVal]) {
+      const y = valToY(val);
+      const label = bmCode === '518880.SH' ? val.toFixed(3) : Math.round(val);
+      bmAxisLabels += `<text x="${W - PX}" y="${y - 2}" fill="#ff6b6b" font-size="7" font-family="var(--mono)" text-anchor="end" opacity="0.7">${label}</text>`;
+    }
+
+    const bmRet = bmData[bmData.length - 1].return_pct;
+    bmLabelHtml = `<span class="chart-bm-label">${bmName} ${bmRet >= 0 ? '+' : ''}${bmRet.toFixed(2)}%</span>`;
+  }
+
+  const baseNav = data[0].nav;
+  const navHigh = Math.max(...data.map(s => s.nav));
+  const navLow = Math.min(...data.map(s => s.nav));
+  let navAxisLabels = '';
+  for (const nav of [navHigh, navLow]) {
+    const y = retToY(((nav / baseNav) - 1) * 100);
+    navAxisLabels += `<text x="${PX + 2}" y="${y - 2}" fill="var(--dim)" font-size="7" font-family="var(--mono)" opacity="0.6">${nav.toFixed(3)}</text>`;
+  }
 
   container.innerHTML = `
     <div class="nav-chart-wrapper">
       <div class="nav-chart-title">
         <span class="chart-label">净值走势</span>
-        <span class="chart-nav-value" style="display:none"></span>
+        ${bmLabelHtml}
       </div>
       <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none">
         <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
@@ -1012,8 +1119,11 @@ function renderNavChart(container, snapshots, botId, startDate) {
         </linearGradient></defs>
         <path d="${areaPath}" fill="url(#${gid})"/>
         ${baseLine}
+        ${bmSvg}
         <polyline points="${polyline}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
         ${dots}
+        ${navAxisLabels}
+        ${bmAxisLabels}
       </svg>
       <div class="nav-chart-dates">
         <span>${data[0].date.slice(5)}</span>
@@ -1241,19 +1351,30 @@ function renderComparisonChart(bots, detailsRes, startDate) {
     return;
   }
 
-  // Prepare data: convert NAV to return % series for each bot
   const allSeries = [];
-  const activeBots = G.allBotIds.filter(id => G.portfolioMap[id]);
-
   bots.forEach((botId) => {
     const d = detailsRes[botId] || { snapshots: [] };
     const data = filterSnapshots(d.snapshots, startDate);
-    const idx = activeBots.indexOf(botId);
     const color = getBotColor(botId);
     allSeries.push({ botId, data, color });
   });
 
-  // Find global date range and return range
+  // Collect all unique benchmarks used by selected bots
+  const bmCodesUsed = new Set();
+  for (const s of allSeries) bmCodesUsed.add(getBotBenchmarkCode(s.botId));
+  const bmSeriesMap = {};
+  for (const code of bmCodesUsed) {
+    const src = benchmarkDataMap[code];
+    if (!src || !src.length) continue;
+    const filtered = !startDate ? src : src.filter(s => s.date >= startDate);
+    if (filtered.length < 2) continue;
+    const base = filtered[0].close;
+    bmSeriesMap[code] = filtered.map(s => ({
+      ...s,
+      return_pct: ((s.close / base) - 1) * 100,
+    }));
+  }
+
   let allReturns = [], allDateSet = new Set();
   for (const s of allSeries) {
     for (const pt of s.data) {
@@ -1261,6 +1382,15 @@ function renderComparisonChart(bots, detailsRes, startDate) {
       allDateSet.add(pt.date);
     }
   }
+  for (const [code, bmSeries] of Object.entries(bmSeriesMap)) {
+    const bmBase = bmSeries[0].close / (1 + bmSeries[0].return_pct / 100);
+    for (const b of bmSeries) {
+      allReturns.push(b.return_pct);
+      if (b.high != null) allReturns.push(((b.high / bmBase) - 1) * 100);
+      if (b.low != null) allReturns.push(((b.low / bmBase) - 1) * 100);
+    }
+  }
+
   if (allReturns.length === 0) {
     container.innerHTML = '<div class="cmp-empty">所选 Bot 在此时间范围内无数据</div>';
     legend.innerHTML = '';
@@ -1273,51 +1403,87 @@ function renderComparisonChart(bots, detailsRes, startDate) {
   const rangeR = maxR - minR || 0.01;
 
   const W = 800, H = 240, PX = 6, PY = 20;
+  const retToY = v => PY + (1 - (v - minR) / rangeR) * (H - 2 * PY);
 
-  // Zero line
-  const zeroY = PY + (1 - (0 - minR) / rangeR) * (H - 2 * PY);
+  const zeroY = retToY(0);
   const zeroLine = `<line x1="${PX}" y1="${zeroY.toFixed(1)}" x2="${W - PX}" y2="${zeroY.toFixed(1)}" stroke="var(--dim)" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3"/>`;
 
-  // Y axis labels
   const yLabels = [maxR, 0, minR].map(v => {
-    const y = PY + (1 - (v - minR) / rangeR) * (H - 2 * PY);
+    const y = retToY(v);
     return `<text x="${PX}" y="${y - 3}" fill="var(--dim)" font-size="8" font-family="var(--mono)">${v >= 0 ? '+' : ''}${v.toFixed(2)}%</text>`;
   }).join('');
 
-  // Render each bot's line
+  // Benchmark K-line(s)
+  let bmSvg = '', bmRightAxis = '';
+  const bmLegendItems = [];
+  for (const [code, bmSeries] of Object.entries(bmSeriesMap)) {
+    const bmBaseClose = bmSeries[0].close / (1 + bmSeries[0].return_pct / 100);
+    const dateToX = date => {
+      const idx = allDates.indexOf(date);
+      if (idx < 0) return null;
+      return PX + (idx / Math.max(allDates.length - 1, 1)) * (W - 2 * PX);
+    };
+    const valToY = v => retToY((v / bmBaseClose - 1) * 100);
+    const candleW = Math.max(4, Math.min(14, (W - 2 * PX) / allDates.length * 0.5));
+    const kline = renderKlineSvg(bmSeries, dateToX, valToY, candleW);
+    bmSvg += kline || renderBmLineSvg(bmSeries, dateToX, valToY, '#ff6b6b');
+
+    const bmHighVal = Math.max(...bmSeries.map(b => b.high || b.close));
+    const bmLowVal = Math.min(...bmSeries.map(b => b.low || b.close));
+    const fmtVal = v => code === '518880.SH' ? v.toFixed(3) : Math.round(v);
+    for (const val of [bmHighVal, bmLowVal]) {
+      const y = valToY(val);
+      bmRightAxis += `<text x="${W - PX}" y="${y - 2}" fill="#ff6b6b" font-size="8" font-family="var(--mono)" text-anchor="end" opacity="0.7">${fmtVal(val)}</text>`;
+    }
+
+    const lastBm = bmSeries[bmSeries.length - 1];
+    const name = BENCHMARK_NAMES[code] || code;
+    bmLegendItems.push({ code, name, lastClose: fmtVal(lastBm.close), ret: lastBm.return_pct });
+  }
+
+  // Bot lines
   let lines = '';
   for (const s of allSeries) {
     if (s.data.length < 2) continue;
     const pts = s.data.map(pt => {
       const dateIdx = allDates.indexOf(pt.date);
       const x = PX + (dateIdx / Math.max(allDates.length - 1, 1)) * (W - 2 * PX);
-      const y = PY + (1 - (pt.return_pct - minR) / rangeR) * (H - 2 * PY);
+      const y = retToY(pt.return_pct);
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
     lines += `<polyline points="${pts.join(' ')}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>`;
-    // Dots
     for (const pt of pts) {
       const [cx, cy] = pt.split(',');
       lines += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="${s.color}" opacity="0.7"/>`;
     }
   }
 
-  // Date labels
   const dateLabels = allDates.length >= 2
     ? `<text x="${PX}" y="${H - 2}" fill="var(--dim)" font-size="8" font-family="var(--mono)">${allDates[0].slice(5)}</text>
        <text x="${W - PX}" y="${H - 2}" fill="var(--dim)" font-size="8" font-family="var(--mono)" text-anchor="end">${allDates[allDates.length - 1].slice(5)}</text>`
     : '';
 
   container.innerHTML = `
+    <div style="font-size:11px;font-family:var(--cn);color:var(--dim);margin-bottom:4px">收益率走势对比</div>
     <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="xMidYMid meet" style="display:block">
       ${zeroLine}
       ${yLabels}
+      ${bmSvg}
       ${lines}
+      ${bmRightAxis}
       ${dateLabels}
     </svg>`;
 
-  // Legend
-  legend.innerHTML = allSeries.map(s => {
+  // Legend: benchmarks first, then bots
+  let legendHtml = '';
+  for (const bm of bmLegendItems) {
+    legendHtml += `<span class="cmp-legend-item">
+      <span class="cmp-legend-dot" style="background:#ff4d4d"></span>
+      ${bm.name} ${bm.lastClose}
+      <span class="cmp-legend-val ${FMT.cls(bm.ret)}">${FMT.pct(bm.ret)}</span>
+    </span>`;
+  }
+  legendHtml += allSeries.map(s => {
     const meta = agentMeta[s.botId] || { name: s.botId };
     const lastRet = s.data.length ? s.data[s.data.length - 1].return_pct : null;
     return `<span class="cmp-legend-item">
@@ -1326,6 +1492,7 @@ function renderComparisonChart(bots, detailsRes, startDate) {
       <span class="cmp-legend-val ${FMT.cls(lastRet)}">${FMT.pct(lastRet)}</span>
     </span>`;
   }).join('');
+  legend.innerHTML = legendHtml;
 }
 
 // Metrics sort state: { col: string, asc: boolean }
@@ -1445,15 +1612,23 @@ function renderComparisonMetrics(bots, detailsRes, portfolioMap, startDate) {
 
 // ====== Init ======
 async function init() {
-  const [portfolioRes, avatarRes, agentsRes, detailsRes] = await Promise.all([
+  const [portfolioRes, avatarRes, agentsRes, detailsRes, bmRes] = await Promise.all([
     fetch('/api/portfolio/summary').then(r => r.json()).catch(() => []),
     fetch('/api/bot/avatars').then(r => r.json()).catch(() => ({})),
     fetch('/api/agents').then(r => r.json()).catch(() => ({})),
     fetch('/api/portfolio/details').then(r => r.json()).catch(() => ({})),
+    fetch('/api/benchmarks').then(r => r.json()).catch(() => ({})),
   ]);
 
   avatars = avatarRes;
   agentMeta = agentsRes;
+  if (bmRes && typeof bmRes === 'object' && !bmRes.error) {
+    for (const [code, series] of Object.entries(bmRes)) {
+      if (Array.isArray(series) && series.length && !series[0].error) {
+        benchmarkDataMap[code] = series;
+      }
+    }
+  }
 
   const allBotIds = Object.keys(agentMeta)
     .filter(id => id.startsWith('bot'))
