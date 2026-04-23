@@ -1,8 +1,0 @@
-{
-  "name": "meme绘图风格",
-  "icon": "🎨",
-  "slot": "accessory",
-  "subType": "image",
-  "desc": "图片主导的内容创作框架",
-  "requiresMcp": ["image-gen-mcp"]
-}

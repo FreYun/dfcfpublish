@@ -1,0 +1,588 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.2.26",
+    "lastTouchedAt": "2026-03-18T23:56:03.219Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-03-13T05:23:39.068Z",
+    "lastRunVersion": "2026.2.26",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "browser": {
+    "enabled": true,
+    "defaultProfile": "openclaw",
+    "profiles": {
+      "openclaw": {
+        "cdpPort": 18800,
+        "color": "#FF4500"
+      },
+      "bot9": {
+        "cdpPort": 18809,
+        "color": "#996633"
+      },
+      "bot12": {
+        "cdpPort": 18812,
+        "color": "#888888"
+      },
+      "bot15": {
+        "cdpPort": 18815,
+        "color": "#888888"
+      }
+    }
+  },
+  "auth": {
+    "profiles": {}
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "bailian": {
+        "baseUrl": "<YOUR_BASE_URL>",
+        "apiKey": "<YOUR_API_KEY>",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "qwen3.5-plus",
+            "name": "qwen3.5-plus",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1000000,
+            "maxTokens": 65536
+          },
+          {
+            "id": "qwen3-max-2026-01-23",
+            "name": "qwen3-max-2026-01-23",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 262144,
+            "maxTokens": 65536
+          },
+          {
+            "id": "qwen3-coder-next",
+            "name": "qwen3-coder-next",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 262144,
+            "maxTokens": 65536
+          },
+          {
+            "id": "qwen3-coder-plus",
+            "name": "qwen3-coder-plus",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1000000,
+            "maxTokens": 65536
+          },
+          {
+            "id": "MiniMax-M2.5",
+            "name": "MiniMax-M2.5",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 196608,
+            "maxTokens": 32768
+          },
+          {
+            "id": "glm-5",
+            "name": "glm-5",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 202752,
+            "maxTokens": 16384
+          },
+          {
+            "id": "glm-4.7",
+            "name": "glm-4.7",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 202752,
+            "maxTokens": 16384
+          },
+          {
+            "id": "kimi-k2.5",
+            "name": "kimi-k2.5",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 262144,
+            "maxTokens": 32768
+          }
+        ]
+      },
+      "zai-coding-plan": {
+        "baseUrl": "<YOUR_BASE_URL>",
+        "apiKey": "<YOUR_API_KEY>",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "qwen3.5-plus-2026-02-15",
+            "name": "qwen3.5-plus",
+            "reasoning": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1000000,
+            "maxTokens": 65536
+          },
+          {
+            "id": "gpt-5.4",
+            "name": "gpt-5.4",
+            "reasoning": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 262144,
+            "maxTokens": 32768
+          },
+          {
+            "id": "glm-5",
+            "name": "glm-5",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 202752,
+            "maxTokens": 16384
+          },
+          {
+            "id": "kimi-k2.5",
+            "name": "kimi-k2.5",
+            "reasoning": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 262144,
+            "maxTokens": 32768
+          }
+        ]
+      },
+      "legacylands": {
+        "baseUrl": "<YOUR_BASE_URL>",
+        "apiKey": "<YOUR_API_KEY>",
+        "api": "anthropic-messages",
+        "models": [
+          {
+            "id": "claude-haiku-4-5-20251001",
+            "name": "Claude Haiku 4.5",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "claude-sonnet-4-6",
+            "name": "Claude Sonnet 4.6",
+            "reasoning": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 16384
+          },
+          {
+            "id": "claude-opus-4-6",
+            "name": "Claude Opus 4.6",
+            "reasoning": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 16384
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "legacylands/claude-opus-4-6"
+      },
+      "cliBackends": {
+        "claude-cli-glm": {
+          "command": "claude",
+          "args": [
+            "-p",
+            "--output-format",
+            "json",
+            "--max-turns",
+            "30",
+            "--settings",
+            "/home/rooot/.openclaw/.claude-cli-config/settings.json",
+            "--disallowedTools",
+            "Agent,AskUserQuestion,CronCreate,CronDelete,CronList,EnterPlanMode,EnterWorktree,ExitPlanMode,ExitWorktree,NotebookEdit,Skill,TaskOutput,TaskStop"
+          ],
+          "output": "json",
+          "input": "arg",
+          "modelArg": "--model",
+          "sessionArg": "--session-id",
+          "sessionMode": "always",
+          "systemPromptArg": "--append-system-prompt",
+          "systemPromptMode": "append",
+          "systemPromptWhen": "first",
+          "serialize": false,
+          "env": {
+            "ANTHROPIC_BASE_URL": "<YOUR_ANTHROPIC_BASE_URL>",
+            "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+            "CLAUDE_CODE_SKIP_OAUTH": "<YOUR_CLAUDE_CODE_SKIP_OAUTH>",
+            "DISABLE_TELEMETRY": "1",
+            "CLAUDE_CONFIG_DIR": "<YOUR_OPENCLAW_DIR>/.claude-cli-config",
+            "ANTHROPIC_AUTH_TOKEN": "<YOUR_ANTHROPIC_AUTH_TOKEN>"
+          },
+          "clearEnv": []
+        }
+      },
+      "models": {
+        "bailian/qwen3.5-plus": {},
+        "bailian/qwen3-max-2026-01-23": {},
+        "bailian/qwen3-coder-next": {},
+        "bailian/qwen3-coder-plus": {},
+        "bailian/MiniMax-M2.5": {},
+        "bailian/glm-5": {},
+        "bailian/glm-4.7": {},
+        "bailian/kimi-k2.5": {},
+        "zai-coding-plan/kimi-k2.5": {
+          "alias": "Kimi K2.5"
+        },
+        "zai-coding-plan/qwen3.5-plus-2026-02-15": {
+          "alias": "Qwen3.5-Plus"
+        },
+        "zai-coding-plan/gpt-5.4": {
+          "alias": "GPT-5.4"
+        },
+        "zai-coding-plan/glm-5": {
+          "alias": "GLM-5"
+        },
+        "kimi-coding/k2p5": {
+          "alias": "Kimi K2.5"
+        },
+        "legacylands/claude-haiku-4-5-20251001": {
+          "alias": "Claude Haiku 4.5"
+        },
+        "legacylands/claude-sonnet-4-6": {
+          "alias": "Claude Sonnet 4.6"
+        },
+        "legacylands/claude-opus-4-6": {
+          "alias": "Claude Opus 4.6"
+        }
+      },
+      "workspace": "<YOUR_OPENCLAW_DIR>/workspace",
+      "memorySearch": {
+        "provider": "openai",
+        "model": "Private-Qwen3-Embedding-4B",
+        "remote": {
+          "baseUrl": "<YOUR_BASE_URL>",
+          "apiKey": "<YOUR_API_KEY>"
+        },
+        "fallback": "none"
+      },
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    },
+    "list": [
+      {
+        "id": "bot9",
+        "name": "公众号运营强哥",
+        "workspace": "<YOUR_OPENCLAW_DIR>/workspace-bot9"
+      },
+      {
+        "id": "bot12",
+        "name": "小天爱黄金",
+        "workspace": "<YOUR_OPENCLAW_DIR>/workspace-bot12"
+      },
+      {
+        "id": "bot15",
+        "name": "搞钱小财迷",
+        "workspace": "<YOUR_OPENCLAW_DIR>/workspace-bot15"
+      }
+    ]
+  },
+  "tools": {
+    "profile": "full",
+    "deny": [
+      "sessions_spawn",
+      "sessions_send",
+      "sessions_list",
+      "sessions_history"
+    ],
+    "web": {
+      "search": {
+        "enabled": true,
+        "provider": "aliyun",
+        "aliyun": {
+          "baseUrl": "<YOUR_BASE_URL>",
+          "apiKey": "<YOUR_API_KEY>",
+          "model": "web-search-aliyun-v1"
+        }
+      }
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "bot9",
+      "match": {
+        "channel": "feishu",
+        "accountId": "bot9"
+      }
+    },
+    {
+      "agentId": "bot12",
+      "match": {
+        "channel": "feishu",
+        "accountId": "bot12"
+      }
+    },
+    {
+      "agentId": "bot15",
+      "match": {
+        "channel": "feishu",
+        "accountId": "bot15"
+      }
+    }
+  ],
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
+  },
+  "channels": {
+    "feishu": {
+      "enabled": true,
+      "streaming": true,
+      "blockStreaming": true,
+      "domain": "feishu",
+      "accounts": {
+        "bot9": {
+          "enabled": true,
+          "appId": "cli_a948844fd77a1bd2",
+          "appSecret": "<YOUR_APP_SECRET>",
+          "name": "公众号运营强哥",
+          "domain": "feishu",
+          "connectionMode": "websocket",
+          "dmPolicy": "open",
+          "groupPolicy": "open",
+          "allowFrom": [
+            "*"
+          ]
+        },
+        "default": {
+          "groupPolicy": "open"
+        },
+        "bot12": {
+          "enabled": true,
+          "appId": "cli_a94e1b14da36dbc7",
+          "appSecret": "<YOUR_APP_SECRET>",
+          "name": "小天爱黄金",
+          "domain": "feishu",
+          "connectionMode": "websocket",
+          "dmPolicy": "open",
+          "groupPolicy": "open",
+          "allowFrom": [
+            "*"
+          ]
+        },
+        "bot15": {
+          "enabled": true,
+          "appId": "cli_a94e7977e0f81bca",
+          "appSecret": "<YOUR_APP_SECRET>",
+          "name": "搞钱小财迷",
+          "domain": "feishu",
+          "connectionMode": "websocket",
+          "dmPolicy": "open",
+          "groupPolicy": "open",
+          "allowFrom": [
+            "*"
+          ]
+        }
+      },
+      "footer": {
+        "elapsed": true,
+        "status": true
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": "<YOUR_GATEWAY_TOKEN>"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "remote": {
+      "url": "<YOUR_GATEWAY_REMOTE_URL>"
+    }
+  },
+  "skills": {
+    "install": {
+      "nodeManager": "npm"
+    }
+  },
+  "plugins": {
+    "allow": [
+      "feishu",
+      "tushare-openclaw",
+      "agent-messaging",
+      "skill-gate",
+      "memory-mem0"
+    ],
+    "load": {
+      "paths": [
+        "~/.openclaw/extensions/node_modules/tushare-openclaw",
+        "~/.openclaw/openclaw/extensions/agent-messaging",
+        "~/.openclaw/extensions/skill-gate"
+      ]
+    },
+    "entries": {
+      "feishu": {
+        "enabled": true
+      },
+      "tushare-openclaw": {
+        "enabled": true,
+        "config": {
+          "token": "<YOUR_TUSHARE_TOKEN>"
+        }
+      },
+      "agent-messaging": {
+        "enabled": true
+      },
+      "skill-gate": {
+        "enabled": true
+      },
+      "memory-mem0": {
+        "enabled": true
+      }
+    }
+  }
+}

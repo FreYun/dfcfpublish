@@ -1,7 +1,0 @@
-{
-  "name": "养号调度",
-  "icon": "🌱",
-  "slot": "scheduled",
-  "subType": "scheduled",
-  "desc": "每天5轮从 bot1-7 中随机挑3个执行小红书养号"
-}

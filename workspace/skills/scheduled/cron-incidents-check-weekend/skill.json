@@ -1,7 +1,0 @@
-{
-  "name": "异常巡检(周末)",
-  "icon": "🚨",
-  "slot": "scheduled",
-  "subType": "scheduled",
-  "desc": "周末早晚各一次检查 incidents.jsonl 异常"
-}
