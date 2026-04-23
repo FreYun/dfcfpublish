@@ -1,0 +1,23 @@
+# Python dependencies for TTPUB
+# Install: pip install -r requirements.txt
+
+# MCP framework
+mcp[cli]>=1.0.0
+
+# A股数据源
+tushare>=1.4.0
+
+# 记忆向量化 (mem0)
+mem0ai
+fastapi
+uvicorn
+qdrant-client
+openai
+
+# 通用依赖
+requests
+Pillow
+
+# OCR (paddleocr MCP server)
+paddleocr
+paddlepaddle
