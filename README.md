@@ -53,7 +53,7 @@
 ### 第 1 步：安装 OpenClaw
 
 ```bash
-npm install -g openclaw@latest
+npm install -g openclaw@2026.2.26
 openclaw onboard --install-daemon
 ```
 
