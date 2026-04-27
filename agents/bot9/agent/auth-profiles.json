@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "profiles": {
+    "zai-coding-plan:default": {
+      "type": "api_key",
+      "provider": "zai-coding-plan",
+      "key": "<ZAI_CODING_PLAN_API_KEY>"
+    }
+  }
+}
