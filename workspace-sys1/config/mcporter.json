@@ -1,0 +1,62 @@
+{
+    "mcpServers": {
+        "xhs-bot1": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot2": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot3": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot4": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot5": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot6": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot7": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot8": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot9": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot10": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot11": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot12": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot13": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot14": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot15": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot16": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot17": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot18": {
+            "url": "<MCP_URL>"
+        },
+        "xhs-bot19": {
+            "url": "<MCP_URL>"
+        }
+    },
+    "imports": []
+}

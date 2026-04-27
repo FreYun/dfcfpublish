@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "lastGood": {
+    "zai-coding-plan": "zai-coding-plan:default"
+  },
+  "usageStats": {
+    "zai-coding-plan:default": {
+      "errorCount": 0,
+      "lastUsed": 0
+    }
+  }
+}

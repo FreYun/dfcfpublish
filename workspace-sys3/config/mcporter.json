@@ -1,0 +1,20 @@
+{
+    "mcpServers": {
+        "image-gen-mcp": {
+            "url": "<MCP_URL>"
+        },
+        "research-mcp": {
+            "url": "<MCP_URL>"
+        },
+        "xiaohongshu-mcp": {
+            "url": "<MCP_URL>"
+        },
+        "compliance-mcp": {
+            "url": "<MCP_URL>"
+        },
+        "openspace": {
+            "command": "<MCP_COMMAND>"
+        }
+    },
+    "imports": []
+}

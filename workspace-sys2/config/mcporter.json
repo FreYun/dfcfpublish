@@ -1,0 +1,14 @@
+{
+    "mcpServers": {
+        "openspace": {
+            "command": "<MCP_COMMAND>",
+            "toolTimeout": 600,
+            "env": {
+                "OPENSPACE_HOST_SKILL_DIRS": "<PATH>",
+                "OPENSPACE_WORKSPACE": "<PATH>",
+                "OPENSPACE_MODEL": "anthropic/claude-sonnet-4-6"
+            }
+        }
+    },
+    "imports": []
+}

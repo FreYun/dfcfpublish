@@ -1,0 +1,8 @@
+{
+    "mcpServers": {
+        "media-data-pack": {
+            "url": "<MCP_URL>"
+        }
+    },
+    "imports": []
+}
